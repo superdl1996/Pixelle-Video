@@ -36,6 +36,9 @@ def _save_quick_create_page_config(video_params: dict):
     saved_config = {
         "batch_mode": bool(video_params.get("batch_mode", False)),
         "mode": video_params.get("mode") or "generate",
+        "auto_template_enabled": bool(video_params.get("auto_template_enabled", True)),
+        "template_variable": video_params.get("template_variable") or "",
+        "text_template": video_params.get("text_template") or "",
         "text": video_params.get("text") or "",
         "title": video_params.get("title") or "",
         "split_mode": video_params.get("split_mode") or "paragraph",

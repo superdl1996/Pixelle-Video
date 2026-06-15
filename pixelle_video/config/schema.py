@@ -124,6 +124,12 @@ class QuickCreateUIConfig(BaseModel):
     """Saved Web UI options for the quick-create page"""
     batch_mode: bool = Field(default=False, description="Enable batch generation mode")
     mode: str = Field(default="generate", description="Single-video input mode: generate or fixed")
+    auto_template_enabled: bool = Field(default=True, description="Automatically fill text and title from templates")
+    template_variable: str = Field(default="", description="Value used to replace $title in quick-create templates")
+    text_template: str = Field(
+        default="$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜",
+        description="Template used to fill the text input; $title is replaced by template_variable",
+    )
     text: str = Field(default="", description="Single-video topic or fixed narration text")
     title: str = Field(default="", description="Optional single-video title")
     split_mode: str = Field(default="paragraph", description="Text splitting mode for fixed content")

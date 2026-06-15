@@ -98,6 +98,12 @@ web_ui:
     batch_mode: false
     # Single-video processing mode: generate = AI creation, fixed = user-provided script.
     mode: "generate"
+    # Automatically fill the text input and title from variable templates.
+    auto_template_enabled: true
+    # Value used to replace $title in templates, e.g. "Lifelong Growth".
+    template_variable: ""
+    # Text template for the generated topic/script prompt. $title will be replaced by template_variable.
+    text_template: "$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜"
     # Single-video input text. In generate mode this is the topic; in fixed mode this is the script.
     text: ""
     # Optional single-video title.

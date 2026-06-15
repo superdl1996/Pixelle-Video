@@ -21,6 +21,17 @@ from web.i18n import tr
 from web.utils.async_helpers import get_project_version
 
 
+DEFAULT_QUICK_CREATE_TEXT_TEMPLATE = (
+    "$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,"
+    "必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜"
+)
+
+
+def _apply_quick_create_template(template: str, title_value: str) -> str:
+    """Apply quick-create variable values to a text template."""
+    return (template or "").replace("$title", title_value or "")
+
+
 def render_content_input():
     """Render content input section (left column) with batch support"""
     saved_ui = config_manager.get_quick_create_ui_config()
@@ -52,6 +63,49 @@ def render_content_input():
                 label_visibility="collapsed",
                 key="quick_create_mode"
             )
+
+            auto_template_enabled = st.checkbox(
+                "启用变量模板自动填充",
+                value=bool(saved_ui.get("auto_template_enabled", True)),
+                help="勾选后，填写变量值和模板会自动生成下面的文本输入与标题；取消勾选后可手动编辑。",
+                key="quick_create_auto_template_enabled",
+            )
+
+            template_variable = saved_ui.get("template_variable", "")
+            text_template = saved_ui.get("text_template") or DEFAULT_QUICK_CREATE_TEXT_TEMPLATE
+
+            if auto_template_enabled:
+                variable_col, template_col = st.columns([1, 2])
+                with variable_col:
+                    template_variable = st.text_input(
+                        "变量值（$title）",
+                        value=template_variable,
+                        placeholder="终身成长",
+                        help="这里填写会替换模板里的 $title，例如：终身成长。",
+                        key="quick_create_template_variable",
+                    )
+                with template_col:
+                    text_template = st.text_area(
+                        "文本模板",
+                        value=text_template,
+                        height=96,
+                        help="可使用 $title 作为变量占位符，例如：$title 的书评...",
+                        key="quick_create_text_template",
+                    )
+
+                generated_text = _apply_quick_create_template(text_template, template_variable)
+                generated_title = template_variable
+                st.session_state["quick_create_text"] = generated_text
+                st.session_state["quick_create_title"] = generated_title
+            else:
+                if "quick_create_template_variable" not in st.session_state:
+                    st.session_state.quick_create_template_variable = template_variable
+                if "quick_create_text_template" not in st.session_state:
+                    st.session_state.quick_create_text_template = text_template
+                template_variable = st.session_state.get("quick_create_template_variable", template_variable)
+                text_template = st.session_state.get("quick_create_text_template", text_template)
+                generated_text = None
+                generated_title = None
             
             # Text input (unified for both modes)
             text_placeholder = tr("input.topic_placeholder") if mode == "generate" else tr("input.content_placeholder")
@@ -60,11 +114,12 @@ def render_content_input():
             
             text = st.text_area(
                 tr("input.text"),
-                value=saved_ui.get("text", ""),
+                value=generated_text if auto_template_enabled else saved_ui.get("text", ""),
                 placeholder=text_placeholder,
                 height=text_height,
                 help=text_help,
-                key="quick_create_text"
+                key="quick_create_text",
+                disabled=auto_template_enabled,
             )
             
             # Split mode selector (only show in fixed mode)
@@ -92,10 +147,11 @@ def render_content_input():
             # Title input (optional for both modes)
             title = st.text_input(
                 tr("input.title"),
-                value=saved_ui.get("title", ""),
+                value=generated_title if auto_template_enabled else saved_ui.get("title", ""),
                 placeholder=tr("input.title_placeholder"),
                 help=tr("input.title_help"),
-                key="quick_create_title"
+                key="quick_create_title",
+                disabled=auto_template_enabled,
             )
             
             # Number of scenes (only show in generate mode)
@@ -118,6 +174,9 @@ def render_content_input():
             return {
                 "batch_mode": False,
                 "mode": mode,
+                "auto_template_enabled": auto_template_enabled,
+                "template_variable": template_variable,
+                "text_template": text_template,
                 "text": text,
                 "title": title,
                 "n_scenes": n_scenes,
