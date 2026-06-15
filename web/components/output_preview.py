@@ -27,6 +27,59 @@ from pixelle_video.models.progress import ProgressEvent
 from pixelle_video.config import config_manager
 
 
+def _save_quick_create_page_config(video_params: dict):
+    """Persist current quick-create page options to config.yaml."""
+    template_params = video_params.get("template_params") or {}
+    if not isinstance(template_params, dict):
+        template_params = {}
+
+    saved_config = {
+        "batch_mode": bool(video_params.get("batch_mode", False)),
+        "mode": video_params.get("mode") or "generate",
+        "text": video_params.get("text") or "",
+        "title": video_params.get("title") or "",
+        "split_mode": video_params.get("split_mode") or "paragraph",
+        "n_scenes": int(video_params.get("n_scenes") or 5),
+        "topics_text": video_params.get("topics_text") or "\n".join(video_params.get("topics", []) or []),
+        "title_prefix": video_params.get("title_prefix") or "",
+        "bgm_path": video_params.get("bgm_path"),
+        "bgm_volume": float(video_params.get("bgm_volume") or 0.2),
+        "tts_inference_mode": video_params.get("tts_inference_mode") or "local",
+        "tts_voice": video_params.get("tts_voice") or "zh-CN-YunjianNeural",
+        "tts_speed": float(video_params.get("tts_speed") or 1.2),
+        "tts_workflow": video_params.get("tts_workflow"),
+        "template_type": st.session_state.get("template_type_selector", "image"),
+        "frame_template": video_params.get("frame_template") or "1080x1920/image_default.html",
+        "template_params": template_params,
+        "media_workflow": video_params.get("media_workflow"),
+        "prompt_prefix": video_params.get("prompt_prefix") or "",
+    }
+    config_manager.set_quick_create_ui_config(saved_config)
+    config_manager.save()
+
+
+def render_save_page_config_button(video_params: dict):
+    """Render a button for saving current page options."""
+    label = "💾 保存页面配置" if get_language() == "zh_CN" else "💾 Save Page Configuration"
+    help_text = (
+        "保存当前快速创作页的输入、BGM、配音、模板和媒体工作流选择到 config.yaml。"
+        if get_language() == "zh_CN"
+        else "Save the current quick-create inputs, BGM, TTS, template and media workflow options to config.yaml."
+    )
+    success_text = (
+        "✅ 页面配置已保存到 config.yaml，刷新后会自动恢复。"
+        if get_language() == "zh_CN"
+        else "✅ Page configuration saved to config.yaml. It will be restored after refresh."
+    )
+
+    if st.button(label, help=help_text, use_container_width=True, key="save_quick_create_page_config"):
+        try:
+            _save_quick_create_page_config(video_params)
+            st.success(success_text)
+        except Exception as e:
+            st.error(f"{tr('status.save_failed')}: {str(e)}")
+
+
 def render_output_preview(pixelle_video, video_params):
     """Render output preview section (right column)"""
     # Check if batch mode
@@ -65,6 +118,7 @@ def render_single_output(pixelle_video, video_params):
     
     with st.container(border=True):
         st.markdown(f"**{tr('section.video_generation')}**")
+        render_save_page_config_button(video_params)
         
         # Check if system is configured
         if not config_manager.validate():
@@ -228,6 +282,7 @@ def render_batch_output(pixelle_video, video_params):
     
     with st.container(border=True):
         st.markdown(f"**{tr('batch.section_generation')}**")
+        render_save_page_config_button(video_params)
         
         # Check if topics are provided
         if not topics:

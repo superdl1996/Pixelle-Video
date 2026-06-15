@@ -154,6 +154,14 @@ class ConfigManager:
     def set_api_provider_config(self, provider: str, updates: dict):
         """Set configuration for a direct API provider"""
         self.update({"api_providers": {provider: updates}})
+
+    def get_quick_create_ui_config(self) -> dict:
+        """Get saved quick-create Web UI configuration as dict"""
+        return self.config.web_ui.quick_create.model_dump()
+
+    def set_quick_create_ui_config(self, updates: dict):
+        """Set saved quick-create Web UI configuration"""
+        self.update({"web_ui": {"quick_create": updates}})
     
     def set_comfyui_config(
         self, 

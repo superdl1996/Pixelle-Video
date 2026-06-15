@@ -89,3 +89,46 @@ template:
   #   - 1920x1080 (horizontal/landscape): image_film.html, image_full.html, etc.
   # See templates/ directory for all available templates
   default_template: "1080x1920/image_default.html"
+
+# ==================== Web UI Saved Page Configuration ====================
+# The Web UI can save page selections here. You can also edit these values manually.
+web_ui:
+  quick_create:
+    # Enable batch generation mode on the Quick Create page.
+    batch_mode: false
+    # Single-video processing mode: generate = AI creation, fixed = user-provided script.
+    mode: "generate"
+    # Single-video input text. In generate mode this is the topic; in fixed mode this is the script.
+    text: ""
+    # Optional single-video title.
+    title: ""
+    # Split mode for fixed scripts: paragraph, line, or sentence.
+    split_mode: "paragraph"
+    # Number of scenes, range 3-30.
+    n_scenes: 5
+    # Batch topics, one per line.
+    topics_text: ""
+    # Optional title prefix for batch mode.
+    title_prefix: ""
+    # BGM filename from bgm/ or data/bgm/. Set to null to disable BGM.
+    bgm_path: "default.mp3"
+    # BGM volume, range 0.0-0.5.
+    bgm_volume: 0.2
+    # TTS mode: local or comfyui.
+    tts_inference_mode: "local"
+    # Edge TTS voice ID used by local TTS mode.
+    tts_voice: "zh-CN-YunjianNeural"
+    # Edge TTS speed used by local TTS mode, range 0.5-2.0.
+    tts_speed: 1.2
+    # ComfyUI TTS workflow key used by comfyui TTS mode.
+    tts_workflow: null
+    # Template type: static, image, or video.
+    template_type: "image"
+    # Selected frame template path.
+    frame_template: "1080x1920/image_default.html"
+    # Template custom parameters. Keys are defined by the selected HTML template.
+    template_params: {}
+    # Selected image/video media workflow key.
+    media_workflow: null
+    # Prompt prefix used by media generation on this page.
+    prompt_prefix: ""

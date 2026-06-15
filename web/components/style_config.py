@@ -28,6 +28,8 @@ from pixelle_video.config import config_manager
 
 def render_style_config(pixelle_video):
     """Render style configuration section (middle column)"""
+    saved_ui = config_manager.get_quick_create_ui_config()
+
     # TTS Section (moved from left column)
     # ====================================================================
     with st.container(border=True):
@@ -44,12 +46,13 @@ def render_style_config(pixelle_video):
         tts_config = comfyui_config["tts"]
         
         # Inference mode selection
+        saved_tts_mode = saved_ui.get("tts_inference_mode") or tts_config.get("inference_mode", "local")
         tts_mode = st.radio(
             tr("tts.inference_mode"),
             ["local", "comfyui"],
             horizontal=True,
             format_func=lambda x: tr(f"tts.mode.{x}"),
-            index=0 if tts_config.get("inference_mode", "local") == "local" else 1,
+            index=0 if saved_tts_mode == "local" else 1,
             key="tts_inference_mode"
         )
         
@@ -68,8 +71,8 @@ def render_style_config(pixelle_video):
             
             # Get saved voice from config
             local_config = tts_config.get("local", {})
-            saved_voice = local_config.get("voice", "zh-CN-YunjianNeural")
-            saved_speed = local_config.get("speed", 1.2)
+            saved_voice = saved_ui.get("tts_voice") or local_config.get("voice", "zh-CN-YunjianNeural")
+            saved_speed = saved_ui.get("tts_speed") or local_config.get("speed", 1.2)
             
             # Build voice options with i18n
             voice_options = []
@@ -133,6 +136,7 @@ def render_style_config(pixelle_video):
             # Default to saved workflow if exists
             default_tts_index = 0
             saved_tts_workflow = tts_config.get("comfyui", {}).get("default_workflow")
+            saved_tts_workflow = saved_ui.get("tts_workflow") or saved_tts_workflow
             if saved_tts_workflow and saved_tts_workflow in tts_workflow_keys:
                 default_tts_index = tts_workflow_keys.index(saved_tts_workflow)
             
@@ -301,7 +305,11 @@ def render_style_config(pixelle_video):
             tr('template.type_selector'),
             options=list(template_type_options.keys()),
             format_func=lambda x: template_type_options[x],
-            index=1,  # Default to 'image'
+            index=list(template_type_options.keys()).index(
+                saved_ui.get("template_type", "image")
+                if saved_ui.get("template_type", "image") in template_type_options
+                else "image"
+            ),
             key="template_type_selector",
             label_visibility="collapsed",
             horizontal=True
@@ -344,16 +352,19 @@ def render_style_config(pixelle_video):
             'video': '1080x1920/video_default.html'
         }
         type_specific_default = type_default_templates.get(selected_template_type, config_default_template)
+        saved_frame_template = saved_ui.get("frame_template") or type_specific_default
+        if get_template_type(Path(saved_frame_template).name) != selected_template_type:
+            saved_frame_template = type_specific_default
         
         # Initialize selected template in session state if not exists
         if 'selected_template' not in st.session_state:
-            st.session_state['selected_template'] = type_specific_default
+            st.session_state['selected_template'] = saved_frame_template
         
         # Track last selected template type to detect type changes
         last_template_type = st.session_state.get('last_template_type', None)
         if last_template_type != selected_template_type:
-            # Template type changed, reset to type-specific default
-            st.session_state['selected_template'] = type_specific_default
+            # Template type changed, reset to saved value for that type or type-specific default
+            st.session_state['selected_template'] = saved_frame_template
             st.session_state['last_template_type'] = selected_template_type
         
         # Collect size groups and prepare tabs
@@ -406,6 +417,14 @@ def render_style_config(pixelle_video):
             tab_label = f"{orientation} {width}×{height}"
             size_labels.append(tab_label)
             size_groups.append(all_templates)
+
+        all_template_paths = {
+            template.template_path
+            for templates in size_groups
+            for template in templates
+        }
+        if st.session_state.get("selected_template") not in all_template_paths:
+            st.session_state["selected_template"] = type_specific_default
         
         # Create tabs for each size group (wrapped in expander)
         with st.expander(tr("template.gallery_view"), expanded=True):
@@ -544,25 +563,25 @@ def render_style_config(pixelle_video):
                     if param_type == 'text':
                         custom_values_for_video[param_name] = st.text_input(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'number':
                         custom_values_for_video[param_name] = st.number_input(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'color':
                         custom_values_for_video[param_name] = st.color_picker(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'bool':
                         custom_values_for_video[param_name] = st.checkbox(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
             
@@ -576,25 +595,25 @@ def render_style_config(pixelle_video):
                     if param_type == 'text':
                         custom_values_for_video[param_name] = st.text_input(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'number':
                         custom_values_for_video[param_name] = st.number_input(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'color':
                         custom_values_for_video[param_name] = st.color_picker(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
                     elif param_type == 'bool':
                         custom_values_for_video[param_name] = st.checkbox(
                             label,
-                            value=default,
+                            value=saved_ui.get("template_params", {}).get(param_name, default),
                             key=f"video_custom_{param_name}"
                         )
         
@@ -729,6 +748,7 @@ def render_style_config(pixelle_video):
             # Select config based on template type (image or video)
             media_config_key = "video" if template_media_type == "video" else "image"
             saved_workflow = comfyui_config.get(media_config_key, {}).get("default_workflow", "")
+            saved_workflow = saved_ui.get("media_workflow") or saved_workflow
             if saved_workflow and saved_workflow in workflow_keys:
                 default_workflow_index = workflow_keys.index(saved_workflow)
         
@@ -764,6 +784,7 @@ def render_style_config(pixelle_video):
             # Prompt prefix input
             # Get current prompt_prefix from config (based on media type)
             current_prefix = comfyui_config.get(media_config_key, {}).get("prompt_prefix", "")
+            current_prefix = saved_ui.get("prompt_prefix") or current_prefix
         
             # Prompt prefix input (temporary, not saved to config)
             prompt_prefix = st.text_area(

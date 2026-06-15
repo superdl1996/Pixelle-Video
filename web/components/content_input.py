@@ -16,12 +16,15 @@ Content input components for web UI (left column)
 
 import streamlit as st
 
+from pixelle_video.config import config_manager
 from web.i18n import tr
 from web.utils.async_helpers import get_project_version
 
 
 def render_content_input():
     """Render content input section (left column) with batch support"""
+    saved_ui = config_manager.get_quick_create_ui_config()
+
     with st.container(border=True):
         st.markdown(f"**{tr('section.content_input')}**")
         
@@ -30,8 +33,9 @@ def render_content_input():
         # ====================================================================
         batch_mode = st.checkbox(
             tr("batch.mode_label"),
-            value=False,
-            help=tr("batch.mode_help")
+            value=bool(saved_ui.get("batch_mode", False)),
+            help=tr("batch.mode_help"),
+            key="quick_create_batch_mode"
         )
         
         if not batch_mode:
@@ -44,7 +48,9 @@ def render_content_input():
                 ["generate", "fixed"],
                 horizontal=True,
                 format_func=lambda x: tr(f"mode.{x}"),
-                label_visibility="collapsed"
+                index=0 if saved_ui.get("mode", "generate") == "generate" else 1,
+                label_visibility="collapsed",
+                key="quick_create_mode"
             )
             
             # Text input (unified for both modes)
@@ -54,9 +60,11 @@ def render_content_input():
             
             text = st.text_area(
                 tr("input.text"),
+                value=saved_ui.get("text", ""),
                 placeholder=text_placeholder,
                 height=text_height,
-                help=text_help
+                help=text_help,
+                key="quick_create_text"
             )
             
             # Split mode selector (only show in fixed mode)
@@ -70,8 +78,13 @@ def render_content_input():
                     tr("split.mode_label"),
                     options=list(split_mode_options.keys()),
                     format_func=lambda x: split_mode_options[x],
-                    index=0,  # Default to paragraph mode
-                    help=tr("split.mode_help")
+                    index=list(split_mode_options.keys()).index(
+                        saved_ui.get("split_mode", "paragraph")
+                        if saved_ui.get("split_mode", "paragraph") in split_mode_options
+                        else "paragraph"
+                    ),
+                    help=tr("split.mode_help"),
+                    key="quick_create_split_mode"
                 )
             else:
                 split_mode = "paragraph"  # Default for generate mode (not used)
@@ -79,8 +92,10 @@ def render_content_input():
             # Title input (optional for both modes)
             title = st.text_input(
                 tr("input.title"),
+                value=saved_ui.get("title", ""),
                 placeholder=tr("input.title_placeholder"),
-                help=tr("input.title_help")
+                help=tr("input.title_help"),
+                key="quick_create_title"
             )
             
             # Number of scenes (only show in generate mode)
@@ -89,9 +104,10 @@ def render_content_input():
                     tr("video.frames"),
                     min_value=3,
                     max_value=30,
-                    value=5,
+                    value=int(saved_ui.get("n_scenes", 5)),
                     help=tr("video.frames_help"),
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
+                    key="quick_create_n_scenes"
                 )
                 st.caption(tr("video.frames_label", n=n_scenes))
             else:
@@ -125,9 +141,11 @@ def render_content_input():
             # Batch topics input
             text_input = st.text_area(
                 tr("batch.topics_label"),
+                value=saved_ui.get("topics_text", ""),
                 height=300,
                 placeholder=tr("batch.topics_placeholder"),
-                help=tr("batch.topics_help")
+                help=tr("batch.topics_help"),
+                key="quick_create_topics_text"
             )
             
             # Split topics by newline
@@ -161,8 +179,10 @@ def render_content_input():
             # Title prefix (optional)
             title_prefix = st.text_input(
                 tr("batch.title_prefix_label"),
+                value=saved_ui.get("title_prefix", ""),
                 placeholder=tr("batch.title_prefix_placeholder"),
-                help=tr("batch.title_prefix_help")
+                help=tr("batch.title_prefix_help"),
+                key="quick_create_title_prefix"
             )
             
             # Number of scenes (unified for all videos)
@@ -170,8 +190,9 @@ def render_content_input():
                 tr("batch.n_scenes_label"),
                 min_value=3,
                 max_value=30,
-                value=5,
-                help=tr("batch.n_scenes_help")
+                value=int(saved_ui.get("n_scenes", 5)),
+                help=tr("batch.n_scenes_help"),
+                key="quick_create_batch_n_scenes"
             )
             st.caption(tr("batch.n_scenes_caption", n=n_scenes))
             
@@ -181,6 +202,7 @@ def render_content_input():
             return {
                 "batch_mode": True,
                 "topics": topics,
+                "topics_text": text_input,
                 "mode": "generate",  # Fixed to AI generate content
                 "title_prefix": title_prefix,
                 "n_scenes": n_scenes,
@@ -189,6 +211,8 @@ def render_content_input():
 
 def render_bgm_section(key_prefix=""):
     """Render BGM selection section"""
+    saved_ui = config_manager.get_quick_create_ui_config()
+
     with st.container(border=True):
         st.markdown(f"**{tr('section.bgm')}**")
         
@@ -215,7 +239,12 @@ def render_bgm_section(key_prefix=""):
         
         # Default to "default.mp3" if exists, otherwise first option
         default_index = 0
-        if "default.mp3" in bgm_files:
+        saved_bgm_path = saved_ui.get("bgm_path")
+        if saved_bgm_path is None:
+            default_index = 0
+        elif saved_bgm_path in bgm_options:
+            default_index = bgm_options.index(saved_bgm_path)
+        elif "default.mp3" in bgm_files:
             default_index = bgm_options.index("default.mp3")
         
         bgm_choice = st.selectbox(
@@ -232,7 +261,7 @@ def render_bgm_section(key_prefix=""):
                 tr("bgm.volume"),
                 min_value=0.0,
                 max_value=0.5,
-                value=0.2,
+                value=float(saved_ui.get("bgm_volume", 0.2)),
                 step=0.01,
                 format="%.2f",
                 key=f"{key_prefix}bgm_volume_slider",

@@ -15,7 +15,7 @@ Configuration schema with Pydantic models
 
 Single source of truth for all configuration defaults and validation.
 """
-from typing import Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
@@ -120,6 +120,34 @@ class TemplateConfig(BaseModel):
     )
 
 
+class QuickCreateUIConfig(BaseModel):
+    """Saved Web UI options for the quick-create page"""
+    batch_mode: bool = Field(default=False, description="Enable batch generation mode")
+    mode: str = Field(default="generate", description="Single-video input mode: generate or fixed")
+    text: str = Field(default="", description="Single-video topic or fixed narration text")
+    title: str = Field(default="", description="Optional single-video title")
+    split_mode: str = Field(default="paragraph", description="Text splitting mode for fixed content")
+    n_scenes: int = Field(default=5, ge=3, le=30, description="Number of scenes")
+    topics_text: str = Field(default="", description="Batch topics, one per line")
+    title_prefix: str = Field(default="", description="Optional title prefix for batch mode")
+    bgm_path: Optional[str] = Field(default="default.mp3", description="Selected BGM filename, null for no BGM")
+    bgm_volume: float = Field(default=0.2, ge=0.0, le=0.5, description="BGM volume")
+    tts_inference_mode: str = Field(default="local", description="TTS inference mode: local or comfyui")
+    tts_voice: str = Field(default="zh-CN-YunjianNeural", description="Local Edge TTS voice ID")
+    tts_speed: float = Field(default=1.2, ge=0.5, le=2.0, description="Local Edge TTS speed")
+    tts_workflow: Optional[str] = Field(default=None, description="ComfyUI TTS workflow key")
+    template_type: str = Field(default="image", description="Template type: static, image or video")
+    frame_template: str = Field(default="1080x1920/image_default.html", description="Selected frame template")
+    template_params: dict[str, Any] = Field(default_factory=dict, description="Template custom parameters")
+    media_workflow: Optional[str] = Field(default=None, description="Image or video media workflow key")
+    prompt_prefix: str = Field(default="", description="Prompt prefix for media generation")
+
+
+class WebUIConfig(BaseModel):
+    """Saved Web UI options"""
+    quick_create: QuickCreateUIConfig = Field(default_factory=QuickCreateUIConfig)
+
+
 class PixelleVideoConfig(BaseModel):
     """Pixelle-Video main configuration"""
     project_name: str = Field(default="Pixelle-Video", description="Project name")
@@ -127,6 +155,7 @@ class PixelleVideoConfig(BaseModel):
     api_providers: APIProvidersConfig = Field(default_factory=APIProvidersConfig)
     comfyui: ComfyUIConfig = Field(default_factory=ComfyUIConfig)
     template: TemplateConfig = Field(default_factory=TemplateConfig)
+    web_ui: WebUIConfig = Field(default_factory=WebUIConfig)
     
     def is_llm_configured(self) -> bool:
         """Check if LLM is properly configured"""
