@@ -1,0 +1,68 @@
+{
+  "26": {
+    "inputs": {
+      "model": "IndexTTS-2",
+      "download_from": "modelscope"
+    },
+    "class_type": "easy downloadIndexTTSAndLoadModel",
+    "_meta": {
+      "title": "IndexTTS 模型加载器"
+    }
+  },
+  "27": {
+    "inputs": {
+      "text": "你是来拉屎的吧！",
+      "unload_model": false,
+      "seed": 4242950409,
+      "indextts_model": [
+        "26",
+        0
+      ],
+      "reference_audio": [
+        "46",
+        0
+      ]
+    },
+    "class_type": "easy indexTTSGenerateSimple",
+    "_meta": {
+      "title": "$text.text!"
+    }
+  },
+  "45": {
+    "inputs": {
+      "audioUI": "/api/view?filename=ComfyUI_temp_gfzma_00001_.flac&type=temp&subfolder=&rand=0.187338745844418",
+      "audio": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "PreviewAudio",
+    "_meta": {
+      "title": "预览音频"
+    }
+  },
+  "46": {
+    "inputs": {
+      "audio": "Microsoft Yunjian Online (Natural) - Chinese (Mainland)男.mp3",
+      "audioUI": "/api/view?filename=Microsoft%20Yunjian%20Online%20(Natural)%20-%20Chinese%20(Mainland)%E7%94%B7.mp3&type=input&subfolder=&rand=0.3650085331343753"
+    },
+    "class_type": "LoadAudio",
+    "_meta": {
+      "title": "$ref_audio.audio"
+    }
+  },
+  "48": {
+    "inputs": {
+      "filename_prefix": "audio/ComfyUI",
+      "audioUI": "/api/view?filename=ComfyUI_00037_.flac&type=output&subfolder=audio&rand=0.6828877177201281",
+      "audio": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "SaveAudio",
+    "_meta": {
+      "title": "保存音频"
+    }
+  }
+}
