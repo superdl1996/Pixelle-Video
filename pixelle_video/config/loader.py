@@ -79,6 +79,7 @@ CONFIG_COMMENTS = {
     ("template", "default_template"): "默认帧模板路径，相对于 templates/ 或 data/templates/。",
     ("web_ui",): "Web 页面配置。刷新页面后会用这里的值恢复控件选择。",
     ("web_ui", "quick_create"): "首页“快速创作”标签页保存的控件配置。",
+    ("web_ui", "dismissed_selfhost_workflow_warnings"): "已经弹出并记录过的 SelfHost 工作流提示列表。列表中的工作流下次不会再弹确认提示。",
     ("web_ui", "quick_create", "batch_mode"): "是否启用批量生成模式。",
     ("web_ui", "quick_create", "mode"): "单视频处理模式：generate 表示 AI 创作，fixed 表示自行创作。",
     ("web_ui", "quick_create", "auto_template_enabled"): "是否启用变量模板自动填充。true 表示根据变量和模板自动生成文本输入与标题。",

@@ -162,6 +162,17 @@ class ConfigManager:
     def set_quick_create_ui_config(self, updates: dict):
         """Set saved quick-create Web UI configuration"""
         self.update({"web_ui": {"quick_create": updates}})
+
+    def get_dismissed_selfhost_workflow_warnings(self) -> list[str]:
+        """Get SelfHost workflow warnings already shown to the user"""
+        return list(self.config.web_ui.dismissed_selfhost_workflow_warnings)
+
+    def dismiss_selfhost_workflow_warning(self, workflow_path: str):
+        """Mark a SelfHost workflow warning as already shown"""
+        dismissed = self.get_dismissed_selfhost_workflow_warnings()
+        if workflow_path not in dismissed:
+            dismissed.append(workflow_path)
+            self.update({"web_ui": {"dismissed_selfhost_workflow_warnings": dismissed}})
     
     def set_comfyui_config(
         self, 

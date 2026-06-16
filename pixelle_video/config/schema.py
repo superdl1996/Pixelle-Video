@@ -152,6 +152,10 @@ class QuickCreateUIConfig(BaseModel):
 class WebUIConfig(BaseModel):
     """Saved Web UI options"""
     quick_create: QuickCreateUIConfig = Field(default_factory=QuickCreateUIConfig)
+    dismissed_selfhost_workflow_warnings: list[str] = Field(
+        default_factory=list,
+        description="SelfHost workflow warning popups already shown to the user",
+    )
 
 
 class PixelleVideoConfig(BaseModel):

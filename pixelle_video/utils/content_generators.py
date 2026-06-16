@@ -19,9 +19,91 @@ These functions are reusable across different pipelines.
 
 import json
 import re
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
 
 from loguru import logger
+
+
+def _response_excerpt(text: str, limit: int = 300) -> str:
+    """Return a compact single-line excerpt for logs and error messages."""
+    compact = re.sub(r"\s+", " ", text).strip()
+    if len(compact) <= limit:
+        return compact
+    half = limit // 2
+    return f"{compact[:half]} ... {compact[-half:]}"
+
+
+async def _generate_narrations_with_retries(
+    llm_service,
+    prompt: str,
+    n_scenes: int,
+    source_label: str,
+    max_retries: int = 3,
+) -> List[str]:
+    """
+    Generate narration JSON with retries for occasional truncated LLM responses.
+    """
+    last_error: Exception | None = None
+    last_response = ""
+
+    for attempt in range(1, max_retries + 1):
+        retry_prompt = prompt
+        if attempt > 1:
+            retry_prompt = (
+                f"{prompt}\n\n"
+                "Previous response was invalid or incomplete JSON. "
+                "Regenerate the full result now. Output ONLY a complete valid JSON object, "
+                "with all strings, arrays, and braces properly closed."
+            )
+
+        response = await llm_service(
+            prompt=retry_prompt,
+            temperature=0.8 if attempt == 1 else 0.3,
+            max_tokens=4096,
+        )
+        last_response = response
+        logger.debug(
+            f"{source_label} attempt {attempt}: LLM response length: {len(response)} chars"
+        )
+
+        try:
+            result = _parse_json(response)
+            narrations = _extract_narrations(result, n_scenes)
+            logger.info(f"Generated {len(narrations)} narrations successfully")
+            return narrations
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
+            last_error = e
+            logger.warning(
+                f"{source_label} attempt {attempt}/{max_retries} returned invalid narration JSON: {e}. "
+                f"Response excerpt: {_response_excerpt(response)}"
+            )
+            if attempt < max_retries:
+                logger.info(f"Retrying {source_label} narration generation...")
+
+    raise ValueError(
+        f"Failed to generate valid narration JSON after {max_retries} attempts. "
+        f"Last error: {last_error}. Last response excerpt: {_response_excerpt(last_response)}"
+    ) from last_error
+
+
+def _extract_narrations(result: dict, n_scenes: int) -> List[str]:
+    """Validate and normalize narration JSON returned by the LLM."""
+    if "narrations" not in result:
+        raise ValueError("Invalid response format: missing 'narrations' key")
+
+    narrations = result["narrations"]
+    if not isinstance(narrations, list):
+        raise ValueError("Invalid response format: 'narrations' must be a list")
+
+    narrations = [str(item).strip() for item in narrations if str(item).strip()]
+
+    if len(narrations) > n_scenes:
+        logger.warning(f"Got {len(narrations)} narrations, taking first {n_scenes}")
+        narrations = narrations[:n_scenes]
+    elif len(narrations) < n_scenes:
+        raise ValueError(f"Expected {n_scenes} narrations, got only {len(narrations)}")
+
+    return narrations
 
 
 async def generate_title(
@@ -123,31 +205,12 @@ async def generate_narrations_from_topic(
         max_words=max_words
     )
     
-    response = await llm_service(
+    return await _generate_narrations_with_retries(
+        llm_service=llm_service,
         prompt=prompt,
-        temperature=0.8,
-        max_tokens=2000
+        n_scenes=n_scenes,
+        source_label="topic narration",
     )
-    
-    logger.debug(f"LLM response: {response[:200]}...")
-    
-    # Parse JSON
-    result = _parse_json(response)
-    
-    if "narrations" not in result:
-        raise ValueError("Invalid response format: missing 'narrations' key")
-    
-    narrations = result["narrations"]
-    
-    # Validate count
-    if len(narrations) > n_scenes:
-        logger.warning(f"Got {len(narrations)} narrations, taking first {n_scenes}")
-        narrations = narrations[:n_scenes]
-    elif len(narrations) < n_scenes:
-        raise ValueError(f"Expected {n_scenes} narrations, got only {len(narrations)}")
-    
-    logger.info(f"Generated {len(narrations)} narrations successfully")
-    return narrations
 
 
 async def generate_narrations_from_content(
@@ -181,29 +244,12 @@ async def generate_narrations_from_content(
         max_words=max_words
     )
     
-    response = await llm_service(
+    return await _generate_narrations_with_retries(
+        llm_service=llm_service,
         prompt=prompt,
-        temperature=0.8,
-        max_tokens=2000
+        n_scenes=n_scenes,
+        source_label="content narration",
     )
-    
-    # Parse JSON
-    result = _parse_json(response)
-    
-    if "narrations" not in result:
-        raise ValueError("Invalid response format: missing 'narrations' key")
-    
-    narrations = result["narrations"]
-    
-    # Validate count
-    if len(narrations) > n_scenes:
-        logger.warning(f"Got {len(narrations)} narrations, taking first {n_scenes}")
-        narrations = narrations[:n_scenes]
-    elif len(narrations) < n_scenes:
-        raise ValueError(f"Expected {n_scenes} narrations, got only {len(narrations)}")
-    
-    logger.info(f"Generated {len(narrations)} narrations successfully")
-    return narrations
 
 
 async def split_narration_script(
@@ -489,8 +535,20 @@ def _parse_json(text: str) -> dict:
         except json.JSONDecodeError:
             pass
     
-    # Try to find any JSON object in the text
-    json_pattern = r'\{[^{}]*(?:"narrations"|"image_prompts")\s*:\s*\[[^\]]*\][^{}]*\}'
+    # Try to parse the content between the outermost braces. This handles providers
+    # that wrap valid JSON with short explanatory text.
+    brace_start = text.find("{")
+    brace_end = text.rfind("}")
+    if brace_start != -1 and brace_end > brace_start:
+        try:
+            return json.loads(text[brace_start:brace_end + 1])
+        except json.JSONDecodeError:
+            pass
+
+    # Try to find a simple known JSON object as a final compatibility fallback.
+    json_pattern = (
+        r'\{[^{}]*(?:"narrations"|"image_prompts"|"video_prompts")\s*:\s*\[[^\]]*\][^{}]*\}'
+    )
     match = re.search(json_pattern, text, re.DOTALL)
     if match:
         try:

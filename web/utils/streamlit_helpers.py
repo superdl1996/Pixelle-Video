@@ -51,8 +51,14 @@ def check_and_warn_selfhost_workflow(workflow_path: str):
     # Check if this is a transition TO selfhost
     is_selfhost = workflow_path.startswith("selfhost/")
     
-    # Only show alert when transitioning TO selfhost
+    # Only show alert once for each SelfHost workflow path.
     if is_selfhost:
+        dismissed = config_manager.get_dismissed_selfhost_workflow_warnings()
+        if workflow_path in dismissed:
+            return
+
+        config_manager.dismiss_selfhost_workflow_warning(workflow_path)
+        config_manager.save()
         _show_js_alert(workflow_path)
 
 

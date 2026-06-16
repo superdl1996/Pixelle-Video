@@ -93,6 +93,8 @@ template:
 # ==================== Web UI Saved Page Configuration ====================
 # The Web UI can save page selections here. You can also edit these values manually.
 web_ui:
+  # SelfHost workflow warning popups already shown. Clear this list to show them again.
+  dismissed_selfhost_workflow_warnings: []
   quick_create:
     # Enable batch generation mode on the Quick Create page.
     batch_mode: false

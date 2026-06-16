@@ -116,7 +116,7 @@
   "70": {
     "inputs": {
       "seed": 84306554191262,
-      "steps": 12,
+      "steps": 18,
       "cfg": 3,
       "sampler_name": "res_multistep",
       "scheduler": "simple",

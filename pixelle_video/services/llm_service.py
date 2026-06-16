@@ -20,10 +20,9 @@ import json
 import re
 from typing import Optional, Type, TypeVar, Union
 
+from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-from loguru import logger
-
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -193,7 +192,15 @@ class LLMService:
                     **kwargs
                 )
                 
-                raw_content = response.choices[0].message.content
+                choice = response.choices[0]
+                finish_reason = getattr(choice, "finish_reason", None)
+                if finish_reason and finish_reason != "stop":
+                    logger.warning(
+                        f"LLM response finished with reason={finish_reason} "
+                        f"(model={final_model}, base_url={client.base_url})"
+                    )
+
+                raw_content = choice.message.content
                 result = raw_content if isinstance(raw_content, str) else ""
                 logger.debug(f"LLM response length: {len(result)} chars")
                 if not result or not result.strip():
@@ -247,7 +254,15 @@ class LLMService:
             max_tokens=max_tokens,
             **kwargs
         )
-        raw_content = response.choices[0].message.content
+        choice = response.choices[0]
+        finish_reason = getattr(choice, "finish_reason", None)
+        if finish_reason and finish_reason != "stop":
+            logger.warning(
+                f"Structured LLM response finished with reason={finish_reason} "
+                f"(model={model}, base_url={client.base_url})"
+            )
+
+        raw_content = choice.message.content
         content = raw_content if isinstance(raw_content, str) else ""
         
         logger.debug(f"Structured output response length: {len(content)} chars")

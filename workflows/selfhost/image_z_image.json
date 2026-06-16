@@ -1,0 +1,165 @@
+{
+  "9": {
+    "inputs": {
+      "filename_prefix": "z-image-base",
+      "images": [
+        "98",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "94": {
+    "inputs": {
+      "text": "hand-drawn illustration style, soft watercolor texture, picture book aesthetic, delicate linework, warm storytelling mood, slightly dreamy atmosphere, soft edges, artistic illustration, book cover style composition,there are no characters in the picture., A person sitting on the edge of a bed in a dimly lit room at midnight, head bowed in regret, hands gripping tangled chains representing daytime failures. On the nightstand, a glowing book emits warm light that dissolves the chains. A small clock shows 2 AM. The atmosphere is heavy but hopeful.",
+      "clip": [
+        "97",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "$prompt.text"
+    }
+  },
+  "95": {
+    "inputs": {
+        "width": [
+		  "200",
+		  0
+		],
+		"height": [
+		  "201",
+		  0
+		],
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "空Latent图像（SD3）"
+    }
+  },
+  "96": {
+    "inputs": {
+      "vae_name": "Z_IMAGE\\ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "97": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "98": {
+    "inputs": {
+      "samples": [
+        "102",
+        0
+      ],
+      "vae": [
+        "96",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "99": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "100",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "采样算法（AuraFlow）"
+    }
+  },
+  "100": {
+    "inputs": {
+      "unet_name": "z_image_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "101": {
+    "inputs": {
+      "text": "text, letters, words, chinese text, english text, typography, captions, watermark, logo, signature, calligraphy, handwriting, symbols, numbers, UI elements",
+      "clip": [
+        "97",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "102": {
+    "inputs": {
+      "seed": 327020026882794,
+      "steps": 18,
+      "cfg": 3,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "99",
+        0
+      ],
+      "positive": [
+        "94",
+        0
+      ],
+      "negative": [
+        "101",
+        0
+      ],
+      "latent_image": [
+        "95",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+    	"200": {
+	  "inputs": {
+		"value": 1152
+	  },
+	  "class_type": "easy int",
+	  "_meta": {
+		"title": "$width.value"
+	  }
+	},
+	"201": {
+	  "inputs": {
+		"value": 2048
+	  },
+	  "class_type": "easy int",
+	  "_meta": {
+		"title": "$height.value"
+	  }
+	}
+}
