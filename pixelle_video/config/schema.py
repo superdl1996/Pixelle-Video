@@ -16,6 +16,7 @@ Configuration schema with Pydantic models
 Single source of truth for all configuration defaults and validation.
 """
 from typing import Any, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -146,6 +147,12 @@ class QuickCreateUIConfig(BaseModel):
     frame_template: str = Field(default="1080x1920/image_default.html", description="Selected frame template")
     template_params: dict[str, Any] = Field(default_factory=dict, description="Template custom parameters")
     media_workflow: Optional[str] = Field(default=None, description="Image or video media workflow key")
+    media_size_override_enabled: bool = Field(
+        default=False,
+        description="Use manually configured media size instead of the template media size",
+    )
+    media_width: Optional[int] = Field(default=None, ge=1, description="Manual media width")
+    media_height: Optional[int] = Field(default=None, ge=1, description="Manual media height")
     prompt_prefix: str = Field(default="", description="Prompt prefix for media generation")
     image_prompt_rewrite_enabled: bool = Field(
         default=False,

@@ -36,6 +36,9 @@ template:
 web_ui:
   quick_create:
     prompt_prefix: ""
+    media_size_override_enabled: false
+    media_width: null
+    media_height: null
     image_prompt_rewrite_enabled: false
     image_prompt_rewrite_prompt: ""
 ```
@@ -92,6 +95,9 @@ web_ui:
 ## Web UI Quick Create Configuration
 
 - `prompt_prefix`: Media prompt prefix currently used by the Quick Create page
+- `media_size_override_enabled`: Whether to use a manual media size
+- `media_width`: Manual media width used by preview and video generation
+- `media_height`: Manual media height used by preview and video generation
 - `image_prompt_rewrite_enabled`: Whether to use a custom image prompt rewrite template
 - `image_prompt_rewrite_prompt`: Custom image prompt rewrite template for controlling how AI turns storyboard narrations into per-scene image prompts
 

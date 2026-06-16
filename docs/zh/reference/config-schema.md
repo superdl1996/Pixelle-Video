@@ -36,6 +36,9 @@ template:
 web_ui:
   quick_create:
     prompt_prefix: ""
+    media_size_override_enabled: false
+    media_width: null
+    media_height: null
     image_prompt_rewrite_enabled: false
     image_prompt_rewrite_prompt: ""
 ```
@@ -92,6 +95,9 @@ web_ui:
 ## Web UI 快速创作配置
 
 - `prompt_prefix`: 快速创作页面当前使用的媒体生成提示词前缀
+- `media_size_override_enabled`: 是否启用手动媒体尺寸
+- `media_width`: 手动媒体宽度，用于预览和生成视频
+- `media_height`: 手动媒体高度，用于预览和生成视频
 - `image_prompt_rewrite_enabled`: 是否启用自定义生图提示词改写模板
 - `image_prompt_rewrite_prompt`: 自定义生图提示词改写模板，用于控制 AI 如何根据分镜旁白生成每条图片提示词
 

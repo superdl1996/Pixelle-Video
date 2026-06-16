@@ -40,6 +40,40 @@ def _get_current_image_prompt_rewrite(video_params: dict) -> tuple[bool, str]:
     return enabled, prompt or ""
 
 
+def _get_current_media_size(video_params: dict) -> tuple[bool, int | None, int | None]:
+    """Read current media size override values from UI state first."""
+    enabled = bool(
+        st.session_state.get(
+            "quick_create_media_size_override_enabled",
+            video_params.get("media_size_override_enabled", False),
+        )
+    )
+
+    width_value = st.session_state.get(
+        "quick_create_media_width",
+        video_params.get("media_width") or st.session_state.get("current_media_width"),
+    )
+    height_value = st.session_state.get(
+        "quick_create_media_height",
+        video_params.get("media_height") or st.session_state.get("current_media_height"),
+    )
+
+    def parse_positive_int(value, fallback):
+        try:
+            parsed = int(str(value).strip())
+            if parsed > 0:
+                return parsed
+        except (TypeError, ValueError):
+            pass
+        return fallback
+
+    fallback_width = video_params.get("media_width") or st.session_state.get("current_media_width")
+    fallback_height = video_params.get("media_height") or st.session_state.get("current_media_height")
+    width = parse_positive_int(width_value, fallback_width)
+    height = parse_positive_int(height_value, fallback_height)
+    return enabled, width, height
+
+
 def _save_quick_create_page_config(video_params: dict):
     """Persist current quick-create page options to config.yaml."""
     template_params = video_params.get("template_params") or {}
@@ -48,6 +82,7 @@ def _save_quick_create_page_config(video_params: dict):
     image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
         _get_current_image_prompt_rewrite(video_params)
     )
+    media_size_override_enabled, media_width, media_height = _get_current_media_size(video_params)
 
     saved_config = {
         "batch_mode": bool(video_params.get("batch_mode", False)),
@@ -71,6 +106,9 @@ def _save_quick_create_page_config(video_params: dict):
         "frame_template": video_params.get("frame_template") or "1080x1920/image_default.html",
         "template_params": template_params,
         "media_workflow": video_params.get("media_workflow"),
+        "media_size_override_enabled": media_size_override_enabled,
+        "media_width": media_width,
+        "media_height": media_height,
         "prompt_prefix": video_params.get("prompt_prefix") or "",
         "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
         "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
@@ -176,6 +214,7 @@ def render_single_output(pixelle_video, video_params):
             image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
                 _get_current_image_prompt_rewrite(video_params)
             )
+            _, media_width, media_height = _get_current_media_size(video_params)
             
             try:
                 # Progress callback to update UI
@@ -212,7 +251,6 @@ def render_single_output(pixelle_video, video_params):
                     progress_bar.progress(min(int(event.progress * 100), 99))  # Cap at 99% until complete
                 
                 # Generate video (directly pass parameters)
-                # Note: media_width and media_height are auto-determined from template
                 video_params = {
                     "text": text,
                     "mode": mode,
@@ -223,13 +261,17 @@ def render_single_output(pixelle_video, video_params):
                     "api_video_params": api_video_params,
                     "frame_template": frame_template,
                     "prompt_prefix": prompt_prefix,
+                    "media_size_override_enabled": st.session_state.get(
+                        "quick_create_media_size_override_enabled",
+                        video_params.get("media_size_override_enabled", False),
+                    ),
                     "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
                     "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
                     "bgm_path": bgm_path,
                     "bgm_volume": bgm_volume if bgm_path else 0.2,
                     "progress_callback": update_progress,
-                    "media_width": st.session_state.get('template_media_width'),
-                    "media_height": st.session_state.get('template_media_height'),
+                    "media_width": media_width,
+                    "media_height": media_height,
                 }
                 # Add TTS parameters based on mode
                 video_params["tts_inference_mode"] = tts_mode
@@ -342,6 +384,9 @@ def render_batch_output(pixelle_video, video_params):
             image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
                 _get_current_image_prompt_rewrite(video_params)
             )
+            media_size_override_enabled, media_width, media_height = _get_current_media_size(
+                video_params
+            )
 
             # Prepare shared config
             shared_config = {
@@ -351,13 +396,14 @@ def render_batch_output(pixelle_video, video_params):
                 "api_video_params": video_params.get("api_video_params"),
                 "frame_template": video_params.get("frame_template"),
                 "prompt_prefix": video_params.get("prompt_prefix") or "",
+                "media_size_override_enabled": media_size_override_enabled,
                 "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
                 "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
                 "bgm_path": video_params.get("bgm_path"),
                 "bgm_volume": video_params.get("bgm_volume") or 0.2,
                 "tts_inference_mode": video_params.get("tts_inference_mode") or "local",
-                "media_width": video_params.get("media_width"),
-                "media_height": video_params.get("media_height"),
+                "media_width": media_width,
+                "media_height": media_height,
             }
             # Add TTS parameters based on mode (only add non-None values)
             if shared_config["tts_inference_mode"] == "local":

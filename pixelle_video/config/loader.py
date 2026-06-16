@@ -17,9 +17,9 @@ Handles loading and saving configuration from/to YAML files.
 """
 from pathlib import Path
 from typing import Any
+
 import yaml
 from loguru import logger
-
 
 CONFIG_COMMENTS = {
     ("project_name",): "项目名称，仅用于显示和识别当前配置。",
@@ -101,6 +101,9 @@ CONFIG_COMMENTS = {
     ("web_ui", "quick_create", "frame_template"): "当前选择的分镜模板路径。",
     ("web_ui", "quick_create", "template_params"): "模板自定义参数。键名来自模板文件，可按需手动修改。",
     ("web_ui", "quick_create", "media_workflow"): "图片或视频生成工作流 key。",
+    ("web_ui", "quick_create", "media_size_override_enabled"): "是否启用手动媒体尺寸，启用后预览和生成视频都会使用手填宽高。",
+    ("web_ui", "quick_create", "media_width"): "手动媒体宽度。",
+    ("web_ui", "quick_create", "media_height"): "手动媒体高度。",
     ("web_ui", "quick_create", "prompt_prefix"): "当前页面使用的媒体生成 prompt 前缀。",
     ("web_ui", "quick_create", "image_prompt_rewrite_enabled"): "是否启用自定义生图提示词改写模板。",
     ("web_ui", "quick_create", "image_prompt_rewrite_prompt"): "自定义生图提示词改写模板，用于控制 AI 如何根据分镜生成图片提示词。",

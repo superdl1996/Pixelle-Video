@@ -777,15 +777,74 @@ def render_style_config(pixelle_video):
             check_and_warn_selfhost_workflow(workflow_key)
         
             # Get media size from template
-            media_width = st.session_state.get('template_media_width')
-            media_height = st.session_state.get('template_media_height')
-            
-            # Display media size info (read-only)
+            template_media_width = st.session_state.get('template_media_width')
+            template_media_height = st.session_state.get('template_media_height')
+            media_width = template_media_width
+            media_height = template_media_height
+
+            if "quick_create_media_width" not in st.session_state:
+                saved_media_width = saved_ui.get("media_width")
+                st.session_state.quick_create_media_width = (
+                    str(saved_media_width) if saved_media_width else ""
+                )
+            if "quick_create_media_height" not in st.session_state:
+                saved_media_height = saved_ui.get("media_height")
+                st.session_state.quick_create_media_height = (
+                    str(saved_media_height) if saved_media_height else ""
+                )
+
+            media_size_override_enabled = st.checkbox(
+                tr("style.media_size_override_enabled"),
+                value=bool(saved_ui.get("media_size_override_enabled", False)),
+                key="quick_create_media_size_override_enabled",
+                help=tr("style.media_size_override_help"),
+            )
+
+            if media_size_override_enabled:
+                if not st.session_state.quick_create_media_width.strip():
+                    st.session_state.quick_create_media_width = str(template_media_width or 1024)
+                if not st.session_state.quick_create_media_height.strip():
+                    st.session_state.quick_create_media_height = str(template_media_height or 1024)
+
+                media_size_col1, media_size_col2 = st.columns(2)
+                with media_size_col1:
+                    manual_media_width = st.text_input(
+                        tr("style.media_width"),
+                        key="quick_create_media_width",
+                    )
+                with media_size_col2:
+                    manual_media_height = st.text_input(
+                        tr("style.media_height"),
+                        key="quick_create_media_height",
+                    )
+
+                try:
+                    parsed_media_width = int(str(manual_media_width).strip())
+                    parsed_media_height = int(str(manual_media_height).strip())
+                    if parsed_media_width > 0 and parsed_media_height > 0:
+                        media_width = parsed_media_width
+                        media_height = parsed_media_height
+                    else:
+                        raise ValueError
+                except (TypeError, ValueError):
+                    st.warning(tr("style.media_size_invalid"))
+                    media_width = template_media_width
+                    media_height = template_media_height
+
+            st.session_state["current_media_width"] = media_width
+            st.session_state["current_media_height"] = media_height
+
+            # Display media size info
             if template_media_type == "video":
                 size_info_text = tr('style.video_size_info', width=media_width, height=media_height)
             else:
                 size_info_text = tr('style.image_size_info', width=media_width, height=media_height)
-            st.info(f"📐 {size_info_text}")
+            size_source_text = (
+                tr("style.media_size_manual")
+                if media_size_override_enabled
+                else tr("style.media_size_template")
+            )
+            st.info(f"📐 {size_info_text} {size_source_text}")
         
             # Prompt prefix input
             # Get current prompt_prefix from config (based on media type)
@@ -918,6 +977,7 @@ def render_style_config(pixelle_video):
             # Set default values for later use
             workflow_key = None
             prompt_prefix = ""
+            media_size_override_enabled = False
             image_prompt_rewrite_enabled = False
             image_prompt_rewrite_prompt = ""
     
@@ -931,6 +991,7 @@ def render_style_config(pixelle_video):
         "frame_template": frame_template,
         "template_params": custom_values_for_video if custom_values_for_video else None,
         "media_workflow": workflow_key,
+        "media_size_override_enabled": media_size_override_enabled,
         "prompt_prefix": prompt_prefix if prompt_prefix else "",
         "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
         "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt if image_prompt_rewrite_prompt else "",

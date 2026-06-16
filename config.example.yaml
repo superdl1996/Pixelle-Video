@@ -138,6 +138,11 @@ web_ui:
     template_params: {}
     # Selected image/video media workflow key.
     media_workflow: null
+    # Use manual media size instead of the selected template media size.
+    media_size_override_enabled: false
+    # Manual media width/height used when media_size_override_enabled is true.
+    media_width: null
+    media_height: null
     # Prompt prefix used by media generation on this page.
     prompt_prefix: ""
     # Enable custom prompt template for generating per-scene image prompts from narrations.
