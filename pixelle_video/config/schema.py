@@ -131,6 +131,14 @@ class QuickCreateUIConfig(BaseModel):
         default="$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜",
         description="Template used to fill the text input; $title is replaced by template_variable",
     )
+    first_frame_enabled: bool = Field(
+        default=False,
+        description="Prepend a fixed first storyboard frame before AI-generated scenes",
+    )
+    first_frame_text_template: str = Field(
+        default="今天要分享的是 $title",
+        description="Template for the fixed first storyboard frame; $title is replaced by template_variable",
+    )
     text: str = Field(default="", description="Single-video topic or fixed narration text")
     title: str = Field(default="", description="Optional single-video title")
     split_mode: str = Field(default="paragraph", description="Text splitting mode for fixed content")

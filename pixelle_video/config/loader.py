@@ -85,6 +85,8 @@ CONFIG_COMMENTS = {
     ("web_ui", "quick_create", "auto_template_enabled"): "是否启用变量模板自动填充。true 表示根据变量和模板自动生成文本输入与标题。",
     ("web_ui", "quick_create", "template_variable"): "模板变量 $title 的值，例如填写“终身成长”。",
     ("web_ui", "quick_create", "text_template"): "文本输入模板。可使用 $title 占位符，保存后会用 template_variable 替换。",
+    ("web_ui", "quick_create", "first_frame_enabled"): "是否启用首帧分镜。启用后会把固定文字插入为第一个分镜。",
+    ("web_ui", "quick_create", "first_frame_text_template"): "首帧分镜文字模板。可使用 $title 占位符，会优先用 template_variable 替换。",
     ("web_ui", "quick_create", "text"): "单视频文本输入。AI 创作为主题，自行创作为完整文案。",
     ("web_ui", "quick_create", "title"): "单视频标题，可留空。",
     ("web_ui", "quick_create", "split_mode"): "自行创作模式的分割方式：paragraph、line 或 sentence。",

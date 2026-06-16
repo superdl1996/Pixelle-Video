@@ -106,6 +106,10 @@ web_ui:
     template_variable: ""
     # Text template for the generated topic/script prompt. $title will be replaced by template_variable.
     text_template: "$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜"
+    # Enable a fixed first storyboard frame before AI-generated scenes.
+    first_frame_enabled: false
+    # Text template for the fixed first storyboard frame. $title will be replaced by template_variable.
+    first_frame_text_template: "今天要分享的是 $title"
     # Single-video input text. In generate mode this is the topic; in fixed mode this is the script.
     text: ""
     # Optional single-video title.

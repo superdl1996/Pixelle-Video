@@ -20,16 +20,32 @@ from pixelle_video.config import config_manager
 from web.i18n import tr
 from web.utils.async_helpers import get_project_version
 
-
 DEFAULT_QUICK_CREATE_TEXT_TEMPLATE = (
     "$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,"
     "必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜"
 )
 
+DEFAULT_FIRST_FRAME_TEXT_TEMPLATE = "今天要分享的是 $title"
+
 
 def _apply_quick_create_template(template: str, title_value: str) -> str:
     """Apply quick-create variable values to a text template."""
     return (template or "").replace("$title", title_value or "")
+
+
+def _sync_first_frame_scene_count():
+    enabled = bool(st.session_state.get("quick_create_first_frame_enabled", False))
+    previous = bool(st.session_state.get("_quick_create_first_frame_enabled_previous", enabled))
+
+    if enabled == previous:
+        return
+
+    current = int(st.session_state.get("quick_create_n_scenes", 5) or 5)
+    if enabled:
+        st.session_state.quick_create_n_scenes = min(30, current + 1)
+    else:
+        st.session_state.quick_create_n_scenes = max(3, current - 1)
+    st.session_state._quick_create_first_frame_enabled_previous = enabled
 
 
 def render_content_input():
@@ -62,6 +78,18 @@ def render_content_input():
                 index=0 if saved_ui.get("mode", "generate") == "generate" else 1,
                 label_visibility="collapsed",
                 key="quick_create_mode"
+            )
+
+            first_frame_enabled = bool(saved_ui.get("first_frame_enabled", False))
+            if "_quick_create_first_frame_enabled_previous" not in st.session_state:
+                st.session_state._quick_create_first_frame_enabled_previous = first_frame_enabled
+
+            first_frame_enabled = st.checkbox(
+                "启用首帧分镜",
+                value=first_frame_enabled,
+                help="勾选后，会把下方文字作为第一个分镜的旁白和字幕；可使用 $title 引用变量值。",
+                key="quick_create_first_frame_enabled",
+                on_change=_sync_first_frame_scene_count,
             )
 
             auto_template_enabled = st.checkbox(
@@ -106,6 +134,27 @@ def render_content_input():
                 text_template = st.session_state.get("quick_create_text_template", text_template)
                 generated_text = None
                 generated_title = None
+
+            first_frame_text_template = saved_ui.get(
+                "first_frame_text_template",
+                DEFAULT_FIRST_FRAME_TEXT_TEMPLATE,
+            )
+            if first_frame_enabled:
+                first_frame_text_template = st.text_area(
+                    "首帧分镜文字",
+                    value=first_frame_text_template,
+                    height=68,
+                    placeholder="今天要分享的是 $title",
+                    help="这段文字会固定作为第一个分镜的配音和字幕。支持 $title，会优先替换为变量值。",
+                    key="quick_create_first_frame_text_template",
+                )
+            else:
+                if "quick_create_first_frame_text_template" not in st.session_state:
+                    st.session_state.quick_create_first_frame_text_template = first_frame_text_template
+                first_frame_text_template = st.session_state.get(
+                    "quick_create_first_frame_text_template",
+                    first_frame_text_template,
+                )
             
             # Text input (unified for both modes)
             text_placeholder = tr("input.topic_placeholder") if mode == "generate" else tr("input.content_placeholder")
@@ -156,11 +205,21 @@ def render_content_input():
             
             # Number of scenes (only show in generate mode)
             if mode == "generate":
+                saved_n_scenes = int(saved_ui.get("n_scenes", 5) or 5)
+                if first_frame_enabled:
+                    current_n_scenes = int(st.session_state.get(
+                        "quick_create_n_scenes",
+                        saved_n_scenes,
+                    ) or 5)
+                    if current_n_scenes < 4:
+                        st.session_state.quick_create_n_scenes = 4
+                    saved_n_scenes = max(4, saved_n_scenes)
+
                 n_scenes = st.slider(
                     tr("video.frames"),
-                    min_value=3,
+                    min_value=4 if first_frame_enabled else 3,
                     max_value=30,
-                    value=int(saved_ui.get("n_scenes", 5)),
+                    value=saved_n_scenes,
                     help=tr("video.frames_help"),
                     label_visibility="collapsed",
                     key="quick_create_n_scenes"
@@ -170,6 +229,12 @@ def render_content_input():
                 # Fixed mode: n_scenes is ignored, set default value
                 n_scenes = 5
                 st.info(tr("video.frames_fixed_mode_hint"))
+
+            first_frame_title_value = template_variable or title or ""
+            first_frame_text = _apply_quick_create_template(
+                first_frame_text_template,
+                first_frame_title_value,
+            ).strip()
             
             return {
                 "batch_mode": False,
@@ -177,6 +242,10 @@ def render_content_input():
                 "auto_template_enabled": auto_template_enabled,
                 "template_variable": template_variable,
                 "text_template": text_template,
+                "first_frame_enabled": first_frame_enabled,
+                "first_frame_text_template": first_frame_text_template,
+                "first_frame_text": first_frame_text,
+                "first_frame_title_value": first_frame_title_value,
                 "text": text,
                 "title": title,
                 "n_scenes": n_scenes,

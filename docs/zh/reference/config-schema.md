@@ -35,6 +35,8 @@ template:
 
 web_ui:
   quick_create:
+    first_frame_enabled: false
+    first_frame_text_template: "今天要分享的是 $title"
     prompt_prefix: ""
     media_size_override_enabled: false
     media_width: null
@@ -94,6 +96,8 @@ web_ui:
 
 ## Web UI 快速创作配置
 
+- `first_frame_enabled`: 是否启用固定首帧分镜。启用后会把 `first_frame_text_template` 作为第一个分镜插入，并让 AI 只生成剩余分镜
+- `first_frame_text_template`: 首帧分镜文字模板，支持 `$title` 占位符，会优先替换为快速创作里的变量值
 - `prompt_prefix`: 快速创作页面当前使用的媒体生成提示词前缀
 - `media_size_override_enabled`: 是否启用手动媒体尺寸
 - `media_width`: 手动媒体宽度，用于预览和生成视频

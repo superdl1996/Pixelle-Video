@@ -68,6 +68,36 @@ class StandardPipeline(LinearVideoPipeline):
     
     # ==================== Lifecycle Methods ====================
 
+    def _first_frame_enabled(self, ctx: PipelineContext) -> bool:
+        return bool(ctx.params.get("first_frame_enabled", False))
+
+    def _resolve_first_frame_text(self, ctx: PipelineContext) -> str:
+        first_frame_text = (
+            ctx.params.get("first_frame_text_template")
+            or ctx.params.get("first_frame_text")
+            or ""
+        )
+        title_value = (
+            ctx.params.get("first_frame_title_value")
+            or ctx.params.get("template_variable")
+            or ctx.title
+            or ctx.params.get("title")
+            or ""
+        )
+        return str(first_frame_text).replace("$title", str(title_value)).strip()
+
+    def _prepend_first_frame_narration(self, ctx: PipelineContext):
+        if not self._first_frame_enabled(ctx):
+            return
+
+        first_frame_text = self._resolve_first_frame_text(ctx)
+        if not first_frame_text:
+            logger.warning("First-frame storyboard is enabled but the text is empty; skipping")
+            return
+
+        ctx.narrations.insert(0, first_frame_text)
+        logger.info("✅ Prepended fixed first-frame narration")
+
     async def setup_environment(self, ctx: PipelineContext):
         """Step 1: Setup task directory and environment."""
         text = ctx.input_text
@@ -100,7 +130,14 @@ class StandardPipeline(LinearVideoPipeline):
         """Step 2: Generate or process script/narrations."""
         mode = ctx.params.get("mode", "generate")
         text = ctx.input_text
-        n_scenes = ctx.params.get("n_scenes", 5)
+        n_scenes = int(ctx.params.get("n_scenes", 5) or 5)
+        generated_n_scenes = n_scenes
+        if mode == "generate" and self._first_frame_enabled(ctx):
+            generated_n_scenes = max(1, n_scenes - 1)
+            logger.info(
+                f"First-frame storyboard enabled: generating {generated_n_scenes} "
+                f"AI narrations for {n_scenes} total scenes"
+            )
         min_words = ctx.params.get("min_narration_words", 5)
         max_words = ctx.params.get("max_narration_words", 20)
         
@@ -109,7 +146,7 @@ class StandardPipeline(LinearVideoPipeline):
             ctx.narrations = await generate_narrations_from_topic(
                 self.llm,
                 topic=text,
-                n_scenes=n_scenes,
+                n_scenes=generated_n_scenes,
                 min_words=min_words,
                 max_words=max_words
             )
@@ -143,6 +180,8 @@ class StandardPipeline(LinearVideoPipeline):
             else:  # fixed
                 ctx.title = await generate_title(self.llm, text, strategy="llm")
                 logger.info(f"   Title: '{ctx.title}' (LLM-generated)")
+
+        self._prepend_first_frame_narration(ctx)
 
     async def plan_visuals(self, ctx: PipelineContext):
         """Step 4: Generate image prompts or visual descriptions."""

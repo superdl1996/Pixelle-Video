@@ -35,6 +35,8 @@ template:
 
 web_ui:
   quick_create:
+    first_frame_enabled: false
+    first_frame_text_template: "今天要分享的是 $title"
     prompt_prefix: ""
     media_size_override_enabled: false
     media_width: null
@@ -94,6 +96,8 @@ web_ui:
 
 ## Web UI Quick Create Configuration
 
+- `first_frame_enabled`: Whether to prepend a fixed first storyboard frame. When enabled, AI generates only the remaining scenes
+- `first_frame_text_template`: Text template for the fixed first storyboard frame. Supports `$title`, replaced first with the Quick Create variable value
 - `prompt_prefix`: Media prompt prefix currently used by the Quick Create page
 - `media_size_override_enabled`: Whether to use a manual media size
 - `media_width`: Manual media width used by preview and video generation

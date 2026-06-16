@@ -90,6 +90,8 @@ def _save_quick_create_page_config(video_params: dict):
         "auto_template_enabled": bool(video_params.get("auto_template_enabled", True)),
         "template_variable": video_params.get("template_variable") or "",
         "text_template": video_params.get("text_template") or "",
+        "first_frame_enabled": bool(video_params.get("first_frame_enabled", False)),
+        "first_frame_text_template": video_params.get("first_frame_text_template") or "",
         "text": video_params.get("text") or "",
         "title": video_params.get("title") or "",
         "split_mode": video_params.get("split_mode") or "paragraph",
@@ -160,6 +162,10 @@ def render_single_output(pixelle_video, video_params):
     title = video_params.get("title")
     n_scenes = video_params.get("n_scenes", 5)
     split_mode = video_params.get("split_mode", "paragraph")
+    first_frame_enabled = bool(video_params.get("first_frame_enabled", False))
+    first_frame_text = video_params.get("first_frame_text") or ""
+    first_frame_text_template = video_params.get("first_frame_text_template") or ""
+    first_frame_title_value = video_params.get("first_frame_title_value") or ""
     bgm_path = video_params.get("bgm_path")
     bgm_volume = video_params.get("bgm_volume", 0.2)
     
@@ -193,6 +199,10 @@ def render_single_output(pixelle_video, video_params):
             # Validate input
             if not text:
                 st.error(tr("error.input_required"))
+                st.stop()
+
+            if first_frame_enabled and not first_frame_text_template.strip():
+                st.error("❌ 请填写首帧分镜文字")
                 st.stop()
 
             from pixelle_video.utils.template_util import get_template_type
@@ -257,6 +267,10 @@ def render_single_output(pixelle_video, video_params):
                     "title": title if title else None,
                     "n_scenes": n_scenes,
                     "split_mode": split_mode,
+                    "first_frame_enabled": first_frame_enabled,
+                    "first_frame_text": first_frame_text,
+                    "first_frame_text_template": first_frame_text_template,
+                    "first_frame_title_value": first_frame_title_value,
                     "media_workflow": workflow_key,
                     "api_video_params": api_video_params,
                     "frame_template": frame_template,
