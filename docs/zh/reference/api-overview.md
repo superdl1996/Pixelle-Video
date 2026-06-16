@@ -130,6 +130,8 @@ uv run uvicorn api.app:app --host 0.0.0.0 --port 8000
 | `tts_workflow` | string | 否 | TTS 工作流 |
 | `ref_audio` | string | 否 | 声音克隆参考音频路径 |
 | `prompt_prefix` | string | 否 | 图像风格前缀 |
+| `image_prompt_rewrite_enabled` | boolean | 否 | 是否启用自定义生图提示词改写模板 |
+| `image_prompt_rewrite_prompt` | string | 否 | 自定义生图提示词改写模板 |
 | `bgm_path` | string | 否 | BGM 文件路径 |
 | `bgm_volume` | float | 否 | BGM 音量 (0.0-1.0，默认 0.3) |
 

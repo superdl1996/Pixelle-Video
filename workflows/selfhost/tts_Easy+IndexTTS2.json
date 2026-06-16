@@ -28,19 +28,6 @@
       "title": "$text.text!"
     }
   },
-  "45": {
-    "inputs": {
-      "audioUI": "/api/view?filename=ComfyUI_temp_gfzma_00001_.flac&type=temp&subfolder=&rand=0.187338745844418",
-      "audio": [
-        "27",
-        0
-      ]
-    },
-    "class_type": "PreviewAudio",
-    "_meta": {
-      "title": "预览音频"
-    }
-  },
   "46": {
     "inputs": {
       "audio": "Microsoft Yunjian Online (Natural) - Chinese (Mainland)男.mp3",

@@ -32,6 +32,12 @@ comfyui:
 
 template:
   default_template: "1080x1920/image_default.html"
+
+web_ui:
+  quick_create:
+    prompt_prefix: ""
+    image_prompt_rewrite_enabled: false
+    image_prompt_rewrite_prompt: ""
 ```
 
 ---
@@ -80,6 +86,14 @@ template:
 ## 模板配置
 
 - `default_template`: 默认帧模板路径（例如 `1080x1920/image_default.html`）
+
+---
+
+## Web UI 快速创作配置
+
+- `prompt_prefix`: 快速创作页面当前使用的媒体生成提示词前缀
+- `image_prompt_rewrite_enabled`: 是否启用自定义生图提示词改写模板
+- `image_prompt_rewrite_prompt`: 自定义生图提示词改写模板，用于控制 AI 如何根据分镜旁白生成每条图片提示词
 
 ---
 

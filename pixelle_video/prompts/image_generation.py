@@ -19,7 +19,6 @@ For generating image prompts from narrations.
 import json
 from typing import List, Optional
 
-
 # ==================== PRESET IMAGE STYLES ====================
 # Predefined visual styles for different use cases
 
@@ -120,7 +119,8 @@ Now, please create {narrations_count} corresponding **English** image prompts fo
 def build_image_prompt_prompt(
     narrations: List[str],
     min_words: int,
-    max_words: int
+    max_words: int,
+    prompt_template: Optional[str] = None,
 ) -> str:
     """
     Build image prompt generation prompt
@@ -131,6 +131,7 @@ def build_image_prompt_prompt(
         narrations: List of narrations
         min_words: Minimum word count
         max_words: Maximum word count
+        prompt_template: Optional custom prompt template used to rewrite image prompts
     
     Returns:
         Formatted prompt for LLM
@@ -143,11 +144,23 @@ def build_image_prompt_prompt(
         ensure_ascii=False,
         indent=2
     )
-    
-    return IMAGE_PROMPT_GENERATION_PROMPT.format(
-        narrations_json=narrations_json,
-        narrations_count=len(narrations),
-        min_words=min_words,
-        max_words=max_words
-    )
+
+    template = prompt_template.strip() if prompt_template else IMAGE_PROMPT_GENERATION_PROMPT
+
+    format_values = {
+        "narrations_json": narrations_json,
+        "narrations_count": len(narrations),
+        "min_words": min_words,
+        "max_words": max_words,
+    }
+
+    try:
+        return template.format(**format_values)
+    except (KeyError, ValueError):
+        # 用户可能直接改模板里的 JSON 示例，导致单个大括号与 format 冲突。
+        # 这种情况下只替换项目支持的占位符，其余内容原样发送给 LLM。
+        rendered = template
+        for key, value in format_values.items():
+            rendered = rendered.replace(f"{{{key}}}", str(value))
+        return rendered
 

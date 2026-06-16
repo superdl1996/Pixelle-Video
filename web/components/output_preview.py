@@ -14,17 +14,30 @@
 Output preview components for web UI (right column)
 """
 
-import base64
 import os
-from pathlib import Path
 
 import streamlit as st
 from loguru import logger
 
-from web.i18n import tr, get_language
-from web.utils.async_helpers import run_async
-from pixelle_video.models.progress import ProgressEvent
 from pixelle_video.config import config_manager
+from pixelle_video.models.progress import ProgressEvent
+from web.i18n import get_language, tr
+from web.utils.async_helpers import run_async
+
+
+def _get_current_image_prompt_rewrite(video_params: dict) -> tuple[bool, str]:
+    """Read current image prompt rewrite values from UI state first."""
+    enabled = bool(
+        st.session_state.get(
+            "quick_create_image_prompt_rewrite_enabled",
+            video_params.get("image_prompt_rewrite_enabled", False),
+        )
+    )
+    prompt = st.session_state.get(
+        "quick_create_image_prompt_rewrite_prompt",
+        video_params.get("image_prompt_rewrite_prompt", ""),
+    )
+    return enabled, prompt or ""
 
 
 def _save_quick_create_page_config(video_params: dict):
@@ -32,6 +45,9 @@ def _save_quick_create_page_config(video_params: dict):
     template_params = video_params.get("template_params") or {}
     if not isinstance(template_params, dict):
         template_params = {}
+    image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
+        _get_current_image_prompt_rewrite(video_params)
+    )
 
     saved_config = {
         "batch_mode": bool(video_params.get("batch_mode", False)),
@@ -56,6 +72,8 @@ def _save_quick_create_page_config(video_params: dict):
         "template_params": template_params,
         "media_workflow": video_params.get("media_workflow"),
         "prompt_prefix": video_params.get("prompt_prefix") or "",
+        "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
+        "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
     }
     config_manager.set_quick_create_ui_config(saved_config)
     config_manager.save()
@@ -155,6 +173,9 @@ def render_single_output(pixelle_video, video_params):
             # Record start time for generation
             import time
             start_time = time.time()
+            image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
+                _get_current_image_prompt_rewrite(video_params)
+            )
             
             try:
                 # Progress callback to update UI
@@ -202,6 +223,8 @@ def render_single_output(pixelle_video, video_params):
                     "api_video_params": api_video_params,
                     "frame_template": frame_template,
                     "prompt_prefix": prompt_prefix,
+                    "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
+                    "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
                     "bgm_path": bgm_path,
                     "bgm_volume": bgm_volume if bgm_path else 0.2,
                     "progress_callback": update_progress,
@@ -239,7 +262,10 @@ def render_single_output(pixelle_video, video_params):
                 file_size_mb = result.file_size / (1024 * 1024)
                 
                 # Parse video size from template path
-                from pixelle_video.utils.template_util import parse_template_size, resolve_template_path
+                from pixelle_video.utils.template_util import (
+                    parse_template_size,
+                    resolve_template_path,
+                )
                 template_path = resolve_template_path(result.storyboard.config.frame_template)
                 video_width, video_height = parse_template_size(template_path)
                 
@@ -313,6 +339,10 @@ def render_batch_output(pixelle_video, video_params):
             use_container_width=True,
             help=tr("batch.generate_help")
         ):
+            image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
+                _get_current_image_prompt_rewrite(video_params)
+            )
+
             # Prepare shared config
             shared_config = {
                 "title_prefix": video_params.get("title_prefix"),
@@ -321,6 +351,8 @@ def render_batch_output(pixelle_video, video_params):
                 "api_video_params": video_params.get("api_video_params"),
                 "frame_template": video_params.get("frame_template"),
                 "prompt_prefix": video_params.get("prompt_prefix") or "",
+                "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
+                "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt,
                 "bgm_path": video_params.get("bgm_path"),
                 "bgm_volume": video_params.get("bgm_volume") or 0.2,
                 "tts_inference_mode": video_params.get("tts_inference_mode") or "local",
@@ -400,8 +432,9 @@ def render_batch_output(pixelle_video, video_params):
                 return callback
             
             # Execute batch generation
-            from web.utils.batch_manager import SimpleBatchManager
             import time
+
+            from web.utils.batch_manager import SimpleBatchManager
             
             batch_manager = SimpleBatchManager()
             start_time = time.time()

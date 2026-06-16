@@ -14,7 +14,8 @@
 Video generation API schemas
 """
 
-from typing import Optional, Literal, Dict, Any
+from typing import Any, Dict, Literal, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -78,6 +79,14 @@ class VideoGenerateRequest(BaseModel):
     
     # === Image Style ===
     prompt_prefix: Optional[str] = Field(None, description="Image style prefix")
+    image_prompt_rewrite_enabled: bool = Field(
+        False,
+        description="Use custom image prompt rewrite template instead of the system default",
+    )
+    image_prompt_rewrite_prompt: Optional[str] = Field(
+        None,
+        description="Custom prompt template used by LLM to generate per-scene image prompts",
+    )
     
     # === BGM ===
     bgm_path: Optional[str] = Field(None, description="Background music path")

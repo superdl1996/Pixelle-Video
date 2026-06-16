@@ -319,7 +319,8 @@ async def generate_image_prompts(
     max_words: int = 60,
     batch_size: int = 10,
     max_retries: int = 3,
-    progress_callback: Optional[callable] = None
+    progress_callback: Optional[callable] = None,
+    prompt_template: Optional[str] = None,
 ) -> List[str]:
     """
     Generate image prompts from narrations (with batching and retry)
@@ -332,6 +333,7 @@ async def generate_image_prompts(
         batch_size: Max narrations per batch (default: 10)
         max_retries: Max retry attempts per batch (default: 3)
         progress_callback: Optional callback(completed, total, message) for progress updates
+        prompt_template: Optional custom prompt template for image prompt rewriting
     
     Returns:
         List of image prompts (base prompts, without prefix applied)
@@ -357,7 +359,17 @@ async def generate_image_prompts(
                 prompt = build_image_prompt_prompt(
                     narrations=batch_narrations,
                     min_words=min_words,
-                    max_words=max_words
+                    max_words=max_words,
+                    prompt_template=prompt_template,
+                )
+                logger.info(
+                    "\n"
+                    "================ IMAGE PROMPT LLM REQUEST ================\n"
+                    f"Batch: {batch_idx}/{len(batches)}\n"
+                    f"Narrations: {len(batch_narrations)}\n"
+                    "Prompt sent to AI:\n"
+                    f"{prompt}\n"
+                    "=========================================================="
                 )
                 
                 response = await llm_service(
@@ -375,6 +387,14 @@ async def generate_image_prompts(
                     raise KeyError("Invalid response format: missing 'image_prompts'")
                 
                 batch_prompts = result["image_prompts"]
+                logger.info(
+                    "\n"
+                    "================ IMAGE PROMPT LLM RESULT =================\n"
+                    f"Batch: {batch_idx}/{len(batches)}\n"
+                    "Parsed image_prompts returned by AI:\n"
+                    f"{json.dumps(batch_prompts, ensure_ascii=False, indent=2)}\n"
+                    "=========================================================="
+                )
                 
                 # Validate count
                 if len(batch_prompts) != len(batch_narrations):

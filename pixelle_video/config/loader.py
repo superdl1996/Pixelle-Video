@@ -102,6 +102,8 @@ CONFIG_COMMENTS = {
     ("web_ui", "quick_create", "template_params"): "模板自定义参数。键名来自模板文件，可按需手动修改。",
     ("web_ui", "quick_create", "media_workflow"): "图片或视频生成工作流 key。",
     ("web_ui", "quick_create", "prompt_prefix"): "当前页面使用的媒体生成 prompt 前缀。",
+    ("web_ui", "quick_create", "image_prompt_rewrite_enabled"): "是否启用自定义生图提示词改写模板。",
+    ("web_ui", "quick_create", "image_prompt_rewrite_prompt"): "自定义生图提示词改写模板，用于控制 AI 如何根据分镜生成图片提示词。",
 }
 
 

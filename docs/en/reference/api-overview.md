@@ -130,6 +130,8 @@ Generate video asynchronously, returns task ID immediately. Suitable for large v
 | `tts_workflow` | string | No | TTS workflow |
 | `ref_audio` | string | No | Reference audio path for voice cloning |
 | `prompt_prefix` | string | No | Image style prefix |
+| `image_prompt_rewrite_enabled` | boolean | No | Whether to use a custom image prompt rewrite template |
+| `image_prompt_rewrite_prompt` | string | No | Custom image prompt rewrite template |
 | `bgm_path` | string | No | BGM file path |
 | `bgm_volume` | float | No | BGM volume (0.0-1.0, default 0.3) |
 

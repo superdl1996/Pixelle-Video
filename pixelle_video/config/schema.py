@@ -147,6 +147,14 @@ class QuickCreateUIConfig(BaseModel):
     template_params: dict[str, Any] = Field(default_factory=dict, description="Template custom parameters")
     media_workflow: Optional[str] = Field(default=None, description="Image or video media workflow key")
     prompt_prefix: str = Field(default="", description="Prompt prefix for media generation")
+    image_prompt_rewrite_enabled: bool = Field(
+        default=False,
+        description="Use a custom prompt template when generating image prompts from narrations",
+    )
+    image_prompt_rewrite_prompt: str = Field(
+        default="",
+        description="Custom prompt template for rewriting generated image prompts",
+    )
 
 
 class WebUIConfig(BaseModel):

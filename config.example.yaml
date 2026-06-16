@@ -140,3 +140,7 @@ web_ui:
     media_workflow: null
     # Prompt prefix used by media generation on this page.
     prompt_prefix: ""
+    # Enable custom prompt template for generating per-scene image prompts from narrations.
+    image_prompt_rewrite_enabled: false
+    # Custom image prompt rewrite template. When enabled in the Web UI and empty, the default system template is filled automatically.
+    image_prompt_rewrite_prompt: ""

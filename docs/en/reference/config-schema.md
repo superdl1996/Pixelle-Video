@@ -32,6 +32,12 @@ comfyui:
 
 template:
   default_template: "1080x1920/image_default.html"
+
+web_ui:
+  quick_create:
+    prompt_prefix: ""
+    image_prompt_rewrite_enabled: false
+    image_prompt_rewrite_prompt: ""
 ```
 
 ---
@@ -80,6 +86,14 @@ template:
 ## Template Configuration
 
 - `default_template`: Default frame template path (e.g., `1080x1920/image_default.html`)
+
+---
+
+## Web UI Quick Create Configuration
+
+- `prompt_prefix`: Media prompt prefix currently used by the Quick Create page
+- `image_prompt_rewrite_enabled`: Whether to use a custom image prompt rewrite template
+- `image_prompt_rewrite_prompt`: Custom image prompt rewrite template for controlling how AI turns storyboard narrations into per-scene image prompts
 
 ---
 

@@ -14,16 +14,18 @@
 Style configuration components for web UI (middle column)
 """
 
+import base64
 import os
 from pathlib import Path
 
 import streamlit as st
 from loguru import logger
 
-from web.i18n import tr, get_language
+from pixelle_video.config import config_manager
+from pixelle_video.prompts.image_generation import IMAGE_PROMPT_GENERATION_PROMPT
+from web.i18n import get_language, tr
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import check_and_warn_selfhost_workflow
-from pixelle_video.config import config_manager
 
 
 def render_style_config(pixelle_video):
@@ -289,7 +291,10 @@ def render_style_config(pixelle_video):
         current_lang = get_language()
         
         # Import template utilities
-        from pixelle_video.utils.template_util import get_templates_grouped_by_size_and_type, get_template_type
+        from pixelle_video.utils.template_util import (
+            get_template_type,
+            get_templates_grouped_by_size_and_type,
+        )
         
         # Template type selector
         st.markdown(f"**{tr('template.type_selector')}**")
@@ -518,6 +523,7 @@ def render_style_config(pixelle_video):
         
         # Custom template parameters (for video generation)
         from pixelle_video.services.frame_html import HTMLFrameGenerator
+
         # Resolve template path to support both data/templates/ and templates/
         from pixelle_video.utils.template_util import resolve_template_path
         template_path_for_params = resolve_template_path(frame_template)
@@ -795,6 +801,36 @@ def render_style_config(pixelle_video):
                 label_visibility="visible",
                 help=tr("style.prompt_prefix_help")
             )
+
+            # Image prompt rewrite controls. The final value is read when the user
+            # clicks Generate Video, then sent as the full LLM prompt template.
+            if "quick_create_image_prompt_rewrite_prompt" not in st.session_state:
+                st.session_state.quick_create_image_prompt_rewrite_prompt = (
+                    saved_ui.get("image_prompt_rewrite_prompt") or ""
+                )
+
+            image_prompt_rewrite_enabled = st.checkbox(
+                tr("style.image_prompt_rewrite_enabled"),
+                value=bool(saved_ui.get("image_prompt_rewrite_enabled", False)),
+                key="quick_create_image_prompt_rewrite_enabled",
+                help=tr("style.image_prompt_rewrite_enabled_help"),
+            )
+
+            if (
+                image_prompt_rewrite_enabled
+                and not st.session_state.quick_create_image_prompt_rewrite_prompt.strip()
+            ):
+                st.session_state.quick_create_image_prompt_rewrite_prompt = (
+                    IMAGE_PROMPT_GENERATION_PROMPT
+                )
+
+            image_prompt_rewrite_prompt = st.text_area(
+                tr("style.image_prompt_rewrite_prompt"),
+                placeholder=tr("style.image_prompt_rewrite_prompt_placeholder"),
+                height=220,
+                key="quick_create_image_prompt_rewrite_prompt",
+                help=tr("style.image_prompt_rewrite_prompt_help"),
+            )
         
             # Media preview expander
             preview_title = tr("style.video_preview_title") if template_media_type == "video" else tr("style.preview_title")
@@ -882,6 +918,8 @@ def render_style_config(pixelle_video):
             # Set default values for later use
             workflow_key = None
             prompt_prefix = ""
+            image_prompt_rewrite_enabled = False
+            image_prompt_rewrite_prompt = ""
     
     # Return all style configuration parameters
     return {
@@ -894,6 +932,8 @@ def render_style_config(pixelle_video):
         "template_params": custom_values_for_video if custom_values_for_video else None,
         "media_workflow": workflow_key,
         "prompt_prefix": prompt_prefix if prompt_prefix else "",
+        "image_prompt_rewrite_enabled": image_prompt_rewrite_enabled,
+        "image_prompt_rewrite_prompt": image_prompt_rewrite_prompt if image_prompt_rewrite_prompt else "",
         "media_width": media_width,
         "media_height": media_height
     }
