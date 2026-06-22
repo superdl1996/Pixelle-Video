@@ -26,7 +26,19 @@ import httpx
 from loguru import logger
 
 from pixelle_video.models.progress import ProgressEvent
-from pixelle_video.models.storyboard import Storyboard, StoryboardFrame, StoryboardConfig
+from pixelle_video.models.storyboard import Storyboard, StoryboardConfig, StoryboardFrame
+
+
+def _build_template_ext(frame_index: int, template_params: Optional[dict]) -> dict:
+    """Build per-frame template values, including first-frame-only author handling."""
+    ext = {"index": frame_index + 1}
+    if template_params:
+        ext.update(template_params)
+
+    author_first_frame_only = bool(ext.pop("author_first_frame_only", False))
+    if author_first_frame_only and frame_index > 0:
+        ext["author"] = ""
+    return ext
 
 
 class FrameProcessor:
@@ -114,7 +126,7 @@ class FrameProcessor:
             else:
                 frame.image_path = None
                 frame.media_type = None
-                logger.debug(f"  2/4: Skipped media generation (not required by template)")
+                logger.debug("  2/4: Skipped media generation (not required by template)")
         
             # Step 3: Compose frame (add subtitle)
             if progress_callback:
@@ -350,17 +362,8 @@ class FrameProcessor:
         # Resolve template path (handles various input formats)
         template_path = resolve_template_path(config.frame_template)
         
-        # Get content metadata from storyboard
-        content_metadata = storyboard.content_metadata if storyboard else None
-        
         # Build ext data
-        ext = {
-            "index": frame.index + 1,
-        }
-        
-        # Add custom template parameters
-        if config.template_params:
-            ext.update(config.template_params)
+        ext = _build_template_ext(frame.index, config.template_params)
         
         # Generate frame using HTML (size is auto-parsed from template path)
         generator = HTMLFrameGenerator(template_path)
@@ -397,7 +400,7 @@ class FrameProcessor:
         # Branch based on media type
         if frame.media_type == "video":
             # Video workflow: overlay HTML template on video, then add audio
-            logger.debug(f"  → Using video-based composition with HTML overlay")
+            logger.debug("  → Using video-based composition with HTML overlay")
             
             # Step 1: Overlay transparent HTML image on video
             # The composed_image_path contains the rendered HTML with transparent background
@@ -428,7 +431,7 @@ class FrameProcessor:
         elif frame.media_type == "image" or frame.media_type is None:
             # Image workflow: Use composed image directly
             # The asset_default.html template includes the image in the composition
-            logger.debug(f"  → Using image-based composition")
+            logger.debug("  → Using image-based composition")
             
             segment_path = video_service.create_video_from_image(
                 image=frame.composed_image_path,
@@ -470,6 +473,7 @@ class FrameProcessor:
     ) -> str:
         """Download media (image or video) from URL to local file"""
         import os
+
         from pixelle_video.utils.os_util import get_task_frame_path
         output_path = get_task_frame_path(task_id, frame_index, media_type)
 

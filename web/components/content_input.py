@@ -136,9 +136,9 @@ def render_content_input():
                 generated_title = None
 
             author_enabled = st.checkbox(
-                "显示作者",
+                "首帧显示作者",
                 value=bool(saved_ui.get("author_enabled", False)),
-                help="勾选后，会在书名下方显示作者；位置会随书名高度自动调整。",
+                help="勾选后，仅在第一个分镜的书名下方显示作者。",
                 key="quick_create_author_enabled",
             )
             author = saved_ui.get("author", "")
@@ -147,7 +147,7 @@ def render_content_input():
                     "作者",
                     value=author,
                     placeholder="请输入作者姓名",
-                    help="作者会使用与书名匹配的字体、描边和阴影样式。",
+                    help="作者仅显示在首帧，并使用与书名匹配的醒目徽章样式。",
                     key="quick_create_author",
                 )
             else:

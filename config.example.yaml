@@ -106,9 +106,9 @@ web_ui:
     template_variable: ""
     # Text template for the generated topic/script prompt. $title will be replaced by template_variable.
     text_template: "$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜"
-    # Show the author below the book title when author is not empty.
+    # Show the author below the book title on the first frame when author is not empty.
     author_enabled: false
-    # Author displayed below the book title.
+    # Author displayed below the book title on the first frame.
     author: ""
     # Enable a fixed first storyboard frame before AI-generated scenes.
     first_frame_enabled: false

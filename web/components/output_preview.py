@@ -185,6 +185,7 @@ def render_single_output(pixelle_video, video_params):
     frame_template = video_params.get("frame_template")
     custom_values_for_video = dict(video_params.get("template_params") or {})
     custom_values_for_video["author"] = author
+    custom_values_for_video["author_first_frame_only"] = True
     workflow_key = video_params.get("media_workflow")
     api_video_params = video_params.get("api_video_params")
     prompt_prefix = video_params.get("prompt_prefix", "")
