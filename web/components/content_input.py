@@ -135,6 +135,26 @@ def render_content_input():
                 generated_text = None
                 generated_title = None
 
+            author_enabled = st.checkbox(
+                "显示作者",
+                value=bool(saved_ui.get("author_enabled", False)),
+                help="勾选后，会在书名下方显示作者；位置会随书名高度自动调整。",
+                key="quick_create_author_enabled",
+            )
+            author = saved_ui.get("author", "")
+            if author_enabled:
+                author = st.text_input(
+                    "作者",
+                    value=author,
+                    placeholder="请输入作者姓名",
+                    help="作者会使用与书名匹配的字体、描边和阴影样式。",
+                    key="quick_create_author",
+                )
+            else:
+                if "quick_create_author" not in st.session_state:
+                    st.session_state.quick_create_author = author
+                author = st.session_state.get("quick_create_author", author)
+
             first_frame_text_template = saved_ui.get(
                 "first_frame_text_template",
                 DEFAULT_FIRST_FRAME_TEXT_TEMPLATE,
@@ -242,6 +262,8 @@ def render_content_input():
                 "auto_template_enabled": auto_template_enabled,
                 "template_variable": template_variable,
                 "text_template": text_template,
+                "author_enabled": author_enabled,
+                "author": author,
                 "first_frame_enabled": first_frame_enabled,
                 "first_frame_text_template": first_frame_text_template,
                 "first_frame_text": first_frame_text,
@@ -334,6 +356,8 @@ def render_content_input():
                 "mode": "generate",  # Fixed to AI generate content
                 "title_prefix": title_prefix,
                 "n_scenes": n_scenes,
+                "author_enabled": bool(saved_ui.get("author_enabled", False)),
+                "author": saved_ui.get("author", ""),
             }
 
 

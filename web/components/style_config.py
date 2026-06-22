@@ -529,6 +529,8 @@ def render_style_config(pixelle_video):
         template_path_for_params = resolve_template_path(frame_template)
         generator_for_params = HTMLFrameGenerator(template_path_for_params)
         custom_params_for_video = generator_for_params.parse_template_parameters()
+        # 作者由左侧内容区统一管理，避免模板参数区出现重复输入框。
+        custom_params_for_video.pop("author", None)
         
         # Get media size from template (for image/video generation)
         media_width, media_height = generator_for_params.get_media_size()

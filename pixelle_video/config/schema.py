@@ -131,6 +131,8 @@ class QuickCreateUIConfig(BaseModel):
         default="$title 的书评,整体要根据分镜总时长评论完整,不要戛然而止,必须以 今天要分享的是 $title ,为视频开头,并且占用一个分镜",
         description="Template used to fill the text input; $title is replaced by template_variable",
     )
+    author_enabled: bool = Field(default=False, description="Show the author below the title")
+    author: str = Field(default="", description="Author displayed below the title")
     first_frame_enabled: bool = Field(
         default=False,
         description="Prepend a fixed first storyboard frame before AI-generated scenes",

@@ -79,6 +79,9 @@ def _save_quick_create_page_config(video_params: dict):
     template_params = video_params.get("template_params") or {}
     if not isinstance(template_params, dict):
         template_params = {}
+    else:
+        template_params = dict(template_params)
+    template_params.pop("author", None)
     image_prompt_rewrite_enabled, image_prompt_rewrite_prompt = (
         _get_current_image_prompt_rewrite(video_params)
     )
@@ -90,6 +93,8 @@ def _save_quick_create_page_config(video_params: dict):
         "auto_template_enabled": bool(video_params.get("auto_template_enabled", True)),
         "template_variable": video_params.get("template_variable") or "",
         "text_template": video_params.get("text_template") or "",
+        "author_enabled": bool(video_params.get("author_enabled", False)),
+        "author": video_params.get("author") or "",
         "first_frame_enabled": bool(video_params.get("first_frame_enabled", False)),
         "first_frame_text_template": video_params.get("first_frame_text_template") or "",
         "text": video_params.get("text") or "",
@@ -166,6 +171,8 @@ def render_single_output(pixelle_video, video_params):
     first_frame_text = video_params.get("first_frame_text") or ""
     first_frame_text_template = video_params.get("first_frame_text_template") or ""
     first_frame_title_value = video_params.get("first_frame_title_value") or ""
+    author_enabled = bool(video_params.get("author_enabled", False))
+    author = (video_params.get("author") or "").strip() if author_enabled else ""
     bgm_path = video_params.get("bgm_path")
     bgm_volume = video_params.get("bgm_volume", 0.2)
     
@@ -176,7 +183,8 @@ def render_single_output(pixelle_video, video_params):
     ref_audio_path = video_params.get("ref_audio")
     
     frame_template = video_params.get("frame_template")
-    custom_values_for_video = video_params.get("template_params", {})
+    custom_values_for_video = dict(video_params.get("template_params") or {})
+    custom_values_for_video["author"] = author
     workflow_key = video_params.get("media_workflow")
     api_video_params = video_params.get("api_video_params")
     prompt_prefix = video_params.get("prompt_prefix", "")
@@ -298,8 +306,7 @@ def render_single_output(pixelle_video, video_params):
                         video_params["ref_audio"] = str(ref_audio_path)
                 
                 # Add custom template parameters if any
-                if custom_values_for_video:
-                    video_params["template_params"] = custom_values_for_video
+                video_params["template_params"] = custom_values_for_video
                 
                 result = run_async(pixelle_video.generate_video(**video_params))
                 

@@ -34,13 +34,17 @@
             z-index: 0;
         }
 
-        .title {
+        .title-group {
     position: absolute;
     top: 240px;
     left: 50%;
     transform: translateX(-50%);
     width: 86%;
     text-align: center;
+    z-index: 2;
+}
+
+.title {
 
     font-size: 96px;
     font-weight: 900;
@@ -58,7 +62,25 @@
         0 4px 0 #000,
         0 8px 14px rgba(0, 0, 0, 0.75);
 
-    z-index: 2;
+}
+
+.book-author {
+    margin-top: 24px;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 4px;
+    color: #ffffff;
+    font-family: 'Ma Shan Zheng', 'Noto Serif SC', 'STKaiti', 'KaiTi', serif;
+    -webkit-text-stroke: 2px #000000;
+    paint-order: stroke fill;
+    text-shadow:
+        0 2px 0 #000,
+        0 5px 10px rgba(0, 0, 0, 0.72);
+}
+
+.book-author:empty {
+    display: none;
 }
 
 .text {
@@ -93,7 +115,7 @@
         .footer {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
             width: 100%;
             padding: 25px 20px 0 20px;
             position: absolute;
@@ -103,35 +125,6 @@
                         1px -1px 0 #000,
                         -1px 1px 0 #000,
                         1px 1px 0 #000;
-        }
-        
-        .author {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            letter-spacing: 2px;
-        }
-        
-        .author-name {
-            font-size: 30px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .author-mark {
-            width: 8px;
-            height: 8px;
-            /* border-radius: 50%; */
-            /* background: rgba(149, 165, 166, 0.7); */
-        }
-        
-        .author-desc {
-            font-size: 22px;
-            /* color: #5d6d7e; */
-            line-height: 1.3;
-            font-weight: 400;
         }
         
         .logo-section {
@@ -165,17 +158,13 @@
 </head>
 <body>
     <div class="bg">
-    <div class="title">《{{title}}》</div>
+    <div class="title-group">
+        <div class="title">《{{title}}》</div>
+        <div class="book-author">{{author}}</div>
+    </div>
     <div class="text">{{text}}</div>
     </div>
     <div class="footer">
-        <div class="author">
-            <div class="author-name">
-                <span class="author-mark"></span>
-                <div class="logo">{{author=@Pixelle.AI}}</div>
-            </div>
-            <div class="author-desc">{{describe=Open Source Omnimodal AI Creative Agent}}</div>
-        </div>
         <div class="logo-section">
             <div class="logo">{{brand=Pixelle-Video}}</div>
             <div class="logo-marks">
