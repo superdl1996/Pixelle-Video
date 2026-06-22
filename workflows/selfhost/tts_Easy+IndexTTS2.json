@@ -9,11 +9,44 @@
       "title": "IndexTTS 模型加载器"
     }
   },
-  "27": {
+  "45": {
     "inputs": {
-      "text": "你是来拉屎的吧！",
+      "audioUI": "/api/view?filename=ComfyUI_temp_hhepe_00001_.flac&type=temp&subfolder=&rand=0.20428517250093792",
+      "audio": [
+        "54",
+        0
+      ]
+    },
+    "class_type": "PreviewAudio",
+    "_meta": {
+      "title": "预览音频"
+    }
+  },
+  "46": {
+    "inputs": {
+      "audio": "茉暖宁Pro.wav",
+      "audioUI": "/api/view?filename=%E8%8C%89%E6%9A%96%E5%AE%81Pro.wav&type=input&subfolder=&rand=0.6358625654479381"
+    },
+    "class_type": "LoadAudio",
+    "_meta": {
+      "title": "加载音频"
+    }
+  },
+  "54": {
+    "inputs": {
+      "text": "今天要分享的是 等一切风平浪静，\n你是否也曾在人潮里突然红了眼眶，却说不清为什么，\n那种被全世界抛下的孤独感，我懂，\n别急着挣脱，情绪的风暴中心往往藏着最安静的答案，\n等待不是软弱，是让浑浊的水慢慢沉淀出清澈，\n海浪翻涌时看不清礁石，退潮后才知道哪里能站稳",
       "unload_model": false,
-      "seed": 4242950409,
+      "do_sample": true,
+      "temperature": 0.8,
+      "top_p": 0.9,
+      "top_k": 30,
+      "num_beams": 3,
+      "repetition_penalty": 10,
+      "length_penalty": 0,
+      "max_mel_tokens": 1815,
+      "max_tokens_per_sentence": 120,
+      "speech_speed": 1,
+      "seed": 725429946,
       "indextts_model": [
         "26",
         0
@@ -23,33 +56,9 @@
         0
       ]
     },
-    "class_type": "easy indexTTSGenerateSimple",
+    "class_type": "easy indexTTSGenerate",
     "_meta": {
-      "title": "$text.text!"
-    }
-  },
-  "46": {
-    "inputs": {
-      "audio": "Microsoft Xiaoxiao Online (Natural) - Chinese (Mainland)女.mp3",
-      "audioUI": "/api/view?filename=Microsoft%20Xiaoxiao%20Online%20(Natural)%20-%20Chinese%20(Mainland)%E5%A5%B3.mp3&type=input&subfolder=&rand=0.9105498085333034"
-    },
-    "class_type": "LoadAudio",
-    "_meta": {
-      "title": "$ref_audio.audio"
-    }
-  },
-  "48": {
-    "inputs": {
-      "filename_prefix": "audio/ComfyUI",
-      "audioUI": "/api/view?filename=ComfyUI_00037_.flac&type=output&subfolder=audio&rand=0.6828877177201281",
-      "audio": [
-        "27",
-        0
-      ]
-    },
-    "class_type": "SaveAudio",
-    "_meta": {
-      "title": "保存音频"
+       "title": "$text.text!"
     }
   }
 }

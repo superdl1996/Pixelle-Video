@@ -1,0 +1,55 @@
+{
+  "26": {
+    "inputs": {
+      "model": "IndexTTS-2",
+      "download_from": "modelscope"
+    },
+    "class_type": "easy downloadIndexTTSAndLoadModel",
+    "_meta": {
+      "title": "IndexTTS 模型加载器"
+    }
+  },
+  "27": {
+    "inputs": {
+      "text": "你是来拉屎的吧！",
+      "unload_model": false,
+      "seed": 4242950409,
+      "indextts_model": [
+        "26",
+        0
+      ],
+      "reference_audio": [
+        "46",
+        0
+      ]
+    },
+    "class_type": "easy indexTTSGenerateSimple",
+    "_meta": {
+      "title": "$text.text!"
+    }
+  },
+  "46": {
+   "inputs": {
+      "audio": "茉甜美Pro.wav",
+      "audioUI": "/api/view?filename=%E8%8C%89%E7%94%9C%E7%BE%8EPro.wav&type=input&subfolder=&rand=0.5899720595260066"
+    },
+    "class_type": "LoadAudio",
+    "_meta": {
+      "title": "$ref_audio.audio"
+    }
+  },
+  "48": {
+    "inputs": {
+      "filename_prefix": "audio/ComfyUI",
+      "audioUI": "/api/view?filename=ComfyUI_00037_.flac&type=output&subfolder=audio&rand=0.6828877177201281",
+      "audio": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "SaveAudio",
+    "_meta": {
+      "title": "保存音频"
+    }
+  }
+}
