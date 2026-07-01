@@ -28,6 +28,8 @@ def test_image_full_renders_author_below_title():
 
     assert '<div class="book-author">麦家</div>' in rendered
     assert "@Pixelle.AI" not in rendered
+    assert "white-space: nowrap" in rendered
+    assert "fitTitleToSingleLine" in rendered
 
 
 def test_image_full_keeps_empty_author_element_hidden_by_css():

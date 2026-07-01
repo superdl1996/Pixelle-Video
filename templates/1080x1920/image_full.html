@@ -46,6 +46,7 @@
 
 .title {
 
+    display: inline-block;
     font-size: 96px;
     font-weight: 900;
     line-height: 1.15;
@@ -61,6 +62,7 @@
     text-shadow:
         0 4px 0 #000,
         0 8px 14px rgba(0, 0, 0, 0.75);
+    white-space: nowrap;
 
 }
 
@@ -175,5 +177,31 @@
             </div>
         </div>
     </div>
+    <script>
+        function fitTitleToSingleLine() {
+            const title = document.querySelector('.title');
+            const titleGroup = document.querySelector('.title-group');
+            if (!title || !titleGroup) return;
+
+            const maxFontSize = 96;
+            const availableWidth = titleGroup.clientWidth - 24;
+            title.style.fontSize = `${maxFontSize}px`;
+
+            if (title.scrollWidth <= availableWidth) return;
+
+            const fittedSize = Math.floor(maxFontSize * availableWidth / title.scrollWidth);
+            title.style.fontSize = `${Math.max(24, fittedSize)}px`;
+
+            while (title.scrollWidth > availableWidth && parseFloat(title.style.fontSize) > 24) {
+                title.style.fontSize = `${parseFloat(title.style.fontSize) - 1}px`;
+            }
+        }
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(fitTitleToSingleLine);
+        } else {
+            window.addEventListener('load', fitTitleToSingleLine);
+        }
+    </script>
 </body>
 </html>
